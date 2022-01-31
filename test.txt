@@ -1,0 +1,43 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+
+	_ "github.com/mattn/go-sqlite3"
+)
+
+func main() {
+	fmt.Println("start...")
+	db, err := sql.Open("sqlite3", "database/store.db")
+	checkErr(err)
+	defer db.Close()
+
+	// create table
+	smt, err := db.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, fname TEXT, lname TEXT)")
+	checkErr(err)
+	smt.Exec()
+	defer smt.Close()
+
+	smt, _ = db.Prepare("INSERT INTO people (fname, lname) VALUES (?, ?)")
+	smt.Exec("Margual", "Seiss")
+
+	rows, err := db.Query("SELECT fname FROM people")
+	checkErr(err)
+
+	var fname, lname string
+	for rows.Next() {
+		err := rows.Scan(&fname)
+		checkErr(err)
+
+	}
+	fmt.Println(fname, lname)
+
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}

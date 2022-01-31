@@ -1,0 +1,8 @@
+func checks:
+    email
+    password correctness
+
+Docker configuration 
+https or http 
+html, css
+tests for functions

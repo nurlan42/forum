@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>post</title>
+</head>
+<body>
+    <h2>Post:</h2>
+    <h2>{{.Title}} - {{.Author}} - {{.TimeCreation}}</h2>
+    <h3>Categories:</h3>
+    {{range .Categories}}
+        <p>{{.}}</p>
+    {{end}}
+
+    <br><br>
+    <h3>Comments</h3>
+    {{range .Comments}}
+        {{.Author}} - {{.Content}} - {{.TimeCreation}} <br><br>
+    {{end}}
+
+    <br>
+
+    <form action="/comment" method="post">
+        <input type="text" name="content" placeholder="Leave a comment">
+        <input hidden name="postID" value="{{.ID}}">
+        <input type="submit">
+    </form> <br><br>
+    <a href="/">BACK</a>
+</body>
+</html>
