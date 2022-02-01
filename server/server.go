@@ -18,8 +18,8 @@ func (c *AppContext) Server() {
 	mux.HandleFunc("/register", c.signup)
 	mux.HandleFunc("/login", c.login)
 	mux.HandleFunc("/logout", c.logout)
-	mux.HandleFunc("/newpost", c.newPost)
-	mux.HandleFunc("/post/", c.post)
+	mux.HandleFunc("/newpost", c.showNewPost)
+	mux.HandleFunc("/post/", c.showPost)
 	mux.HandleFunc("/comment", c.comment)
 	mux.HandleFunc("/newcategory", c.newCategory)
 	srv := &http.Server{

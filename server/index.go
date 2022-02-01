@@ -1,6 +1,7 @@
 package server
 
 import (
+	"database/sql"
 	"net/http"
 	"text/template"
 	"time"
@@ -15,11 +16,40 @@ func init() {
 
 func (c *AppContext) index(w http.ResponseWriter, r *http.Request) {
 
-	var allPosts []Post
+	if !c.alreadyLogIn(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 
+	if r.Method != http.MethodGet {
+		ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		return
+	}
+
+	if r.URL.Path != "/" {
+		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		return
+	}
+
+	// new function
+	allPosts, err := c.ReadPosts()
+	if err != nil {
+		ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	err = tmpl.ExecuteTemplate(w, "index.html", allPosts)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (c *AppContext) ReadPosts() (*[]Post, error) {
+	var allPosts []Post
 	rows, err := c.db.Query(`SELECT posts.post_id, people.username,
 	title, time_creation FROM posts INNER JOIN people ON posts.user_id = people.user_id;`)
-	CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
@@ -30,22 +60,7 @@ func (c *AppContext) index(w http.ResponseWriter, r *http.Request) {
 		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
 		allPosts = append(allPosts, p)
 	}
-	err = tmpl.ExecuteTemplate(w, "index.html", allPosts)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func (c *AppContext) GetUser(id int) string {
-	rows, err := c.db.Query(`SELECT username FROM people WHERE id = ?`, id)
-	CheckErr(err)
-	defer rows.Close()
-	var username string
-	for rows.Next() {
-		err := rows.Scan(&username)
-		CheckErr(err)
-	}
-	return username
+	return &allPosts, nil
 }
 
 func (c *AppContext) newCategory(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +85,13 @@ func (c *AppContext) comment(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		cookie, err := r.Cookie("session")
 		CheckErr(err)
-		userID := c.GetSessions()[cookie.Value]
+
+		session, err := c.getSession(cookie.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		userID := session[cookie.Value]
 		postID := r.FormValue("postID")
 		content := r.FormValue("content")
 
@@ -91,26 +112,29 @@ func (c *AppContext) alreadyLogIn(r *http.Request) bool {
 	if err != nil {
 		return false
 	}
-	_, ok := c.GetSessions()[cookie.Value]
+	// _, ok := c.GetSessions()[cookie.Value]
+	_, err = c.getSession(cookie.Value)
+	if err != nil {
+		return false
+	}
 
-	return ok
+	return true
 }
 
-// getSession gets session from database
-func (c *AppContext) GetSessions() map[string]int {
-	mapSessions := map[string]int{}
+func (c *AppContext) getSession(s string) (map[string]int, error) {
+	mapSession := map[string]int{}
 
-	rows, err := c.db.Query(`SELECT user_id, session_id FROM sessions`)
-	CheckErr(err)
+	var (
+		sessionID string
+		userID    int
+	)
 
-	for rows.Next() {
-		var (
-			sessionID string
-			userID    int
-		)
-		err := rows.Scan(&userID, &sessionID)
-		CheckErr(err)
-		mapSessions[sessionID] = userID
+	row := c.db.QueryRow(`SELECT user_id, session_id FROM sessions WHERE session_id = ?;`, s)
+	err := row.Scan(&userID, &sessionID)
+	if err != nil && err == sql.ErrNoRows {
+		return nil, err
 	}
-	return mapSessions
+
+	mapSession[sessionID] = userID
+	return mapSession, nil
 }

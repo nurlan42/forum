@@ -8,6 +8,11 @@ import (
 )
 
 func (c *AppContext) signup(w http.ResponseWriter, r *http.Request) {
+
+	if r.URL.Path != "/signup" {
+		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		return
+	}
 	ok := c.alreadyLogIn(r)
 	if ok {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -18,7 +23,7 @@ func (c *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 		email := r.FormValue("uemail")
 
 		if c.hasEmail(email) {
-			ErrorPage(w, http.StatusNotAcceptable, "That email already occupied, Try another.")
+			ErrorHandler(w, http.StatusNotAcceptable, "That email already occupied, Try another.")
 			return
 		}
 
@@ -36,10 +41,13 @@ func (c *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
-	}
-	err := tmpl.ExecuteTemplate(w, "register.html", nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else if r.Method == http.MethodGet {
+		err := tmpl.ExecuteTemplate(w, "signup.html", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 	}
 
 }

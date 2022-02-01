@@ -9,7 +9,11 @@
 <body>
     <h3>login page</h3>
     <form action="/login" method="post">
-        <input type="email" name="uemail" placeholder="Email">
+        {{if .Email}}
+            <input type="email" name="uemail" placeholder="Email" value="{{.Email}}">
+        {{else}}
+            <input type="email" name="uemail" placeholder="Email">
+        {{end}}
         <input type="password" name="upass" placeholder="Password">
         <input type="submit">
         <br><br>
@@ -17,8 +21,9 @@
     
     <a href="/register">signup</a>
     <br><br>
+   
     {{if .}}
-    <input type="button" value="submit"> {{.}}
+        <p>{{.Msg}}</p>
     {{end}}
 </body>
 </html>
