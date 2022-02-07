@@ -2,7 +2,6 @@ package server
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -97,7 +96,6 @@ func (c *AppContext) commentReaction(w http.ResponseWriter, r *http.Request) {
 	if !(reaction == 1 || reaction == 0) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-
 	if b {
 		if e == reaction {
 			c.deleteCommReaction(userID, commID)
@@ -105,11 +103,20 @@ func (c *AppContext) commentReaction(w http.ResponseWriter, r *http.Request) {
 			c.updateCommReaction(userID, commID, reaction)
 		}
 	} else {
-		fmt.Println("here")
 		c.writeCommReaction(userID, commID, reaction)
 	}
+	postID := c.readPostID(commID)
+	url := "/post/" + strconv.Itoa(postID)
+	http.Redirect(w, r, url, http.StatusSeeOther)
+}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+func (c *AppContext) readPostID(commID int) int {
+	var postID int
+	row := c.db.QueryRow(`SELECT post_id FROM comments WHERE comment_id = ?;`, commID)
+	err := row.Scan(&postID)
+	CheckErr(err)
+	return postID
+
 }
 
 func (c *AppContext) writeCommReaction(userID, commID, reaction int) {
@@ -122,7 +129,7 @@ func (c *AppContext) updateCommReaction(userID, commID, reaction int) {
 }
 
 func (c *AppContext) deleteCommReaction(userID, commID int) {
-	_, err := c.db.Exec(`DELETE FROM comment_reaction WHERE user_id = ? AND post_id = ?;`, userID, commID)
+	_, err := c.db.Exec(`DELETE FROM comment_reaction WHERE user_id = ? AND comment_id = ?;`, userID, commID)
 	CheckErr(err)
 }
 

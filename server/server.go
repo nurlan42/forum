@@ -24,6 +24,7 @@ func (c *AppContext) Server() {
 	mux.HandleFunc("/newcategory", c.newCategory)
 	mux.HandleFunc("/postreaction", c.postReaction)
 	mux.HandleFunc("/commentreaction", c.commentReaction)
+	mux.HandleFunc("/filter", c.filter)
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))

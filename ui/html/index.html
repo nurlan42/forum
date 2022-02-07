@@ -8,40 +8,34 @@
     <title>index</title>
 </head>
 <body>
-    {{template "header"}}
+    {{template "header" .Categories}}
     <h3>forum / main</h3><br><br>
 
-  
- 
-    <!-- <a href="/newcategory">Create Category</a> -->
-
-    <form action="/" method="post">
+    <form action="/filter" method="post">
         <select name="category" id="">
             <option value="">By category</option>
             {{range $title, $id := .Categories}}
-                <option value="{{$id}}">{{$title}}</option>
+                <option value="{{$id}}" >{{$title}}</option>
             {{end}}
         </select>
         <select name="owner" id="">
             <option value="">Created by you?</option>
             <option value="yes">Yes</option>
         </select>
+       
         <select name="reaction" id="posts">
             <option value="">By reaction</option>
-            <option value="1">like</option>
+            <option value="1">like</option>< 
             <option value="0">dislike</option>
-        </select>
+        </select>  
+
         <input type="submit">
     </form>
     <br><br>
 
-
-
-
-
     <div class="table-container">
-        <table>
-            <thead>
+        <table class="post-tb">
+            <thead class="post-tb-head">
                 <tr>
                     <th>Posts</th>
                     <th>Author</th>
@@ -52,10 +46,10 @@
             <tbody>
                 {{range .AllPosts}}
                 <tr>
-                    <td><a href="post/{{.ID}}"> {{.Title}}</a></td>
+                    <td><a href="post/{{.ID}}">{{.Title}}</a></td>
                     <td>{{.Author}}</td>
                     <td>{{.TimeCreation}}</td>
-                    <td>1</td>
+                    <td>{{.CommentNbr}}</td>
                 </tr>
                 {{end}}
             </tbody>

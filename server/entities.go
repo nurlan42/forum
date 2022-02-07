@@ -19,6 +19,7 @@ type Post struct {
 	TimeCreation           string
 	Comments               []Comment
 	Categories             []string
+	CommentNbr             int
 }
 
 type Comment struct {
