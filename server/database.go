@@ -33,9 +33,10 @@ func (c *AppContext) CreatePeopleTable() {
 
 func (c *AppContext) CreateSessionTable() {
 	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "sessions" (
-		"user_id"	INTEGER NOT NULL,
+		"user_id"	INTEGER NOT NULL UNIQUE, 
 		"session_id"	TEXT NOT NULL,
-		"last_activity"	DATETIME NOT NULL,
+		"start_date"	DATETIME NOT NULL,
+		"expire_date"	DATETIME NOT NULL,
 		FOREIGN KEY("user_id") REFERENCES "people"("user_id")
 	);`)
 	CheckErr(err)
@@ -95,6 +96,36 @@ func (c *AppContext) CreatePostCategory() {
 		FOREIGN KEY("post_id") REFERENCES "posts"("post_id"),
 		FOREIGN KEY("category_id") REFERENCES "categories"("category_id"),
 		PRIMARY KEY("pc_id" AUTOINCREMENT)
+	);`)
+	CheckErr(err)
+	stmt.Exec()
+	defer stmt.Close()
+}
+
+func (c *AppContext) CreatePostReaction() {
+	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "post_reaction" (
+		"pr_id"	INTEGER,
+		"user_id"	INTEGER NOT NULL,
+		"post_id"	INTEGER NOT NULL,
+		"reaction"	INTEGER DEFAULT 0,
+		FOREIGN KEY("user_id") REFERENCES "people"("user_id"),
+		FOREIGN KEY("post_id") REFERENCES "posts"("post_id"),
+		PRIMARY KEY("pr_id")
+	);`)
+	CheckErr(err)
+	stmt.Exec()
+	defer stmt.Close()
+}
+
+func (c *AppContext) CreateCommentReaction() {
+	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "comment_reaction" (
+		"cr_id"	INTEGER,
+		"user_id"	INTEGER NOT NULL,
+		"comment_id"	INTEGER NOT NULL,
+		"reaction"	INTEGER DEFAULT 0,
+		FOREIGN KEY("comment_id") REFERENCES "comments"("comment_id"),
+		FOREIGN KEY("user_id") REFERENCES "people"("user_id"),
+		PRIMARY KEY("cr_id" AUTOINCREMENT)
 	);`)
 	CheckErr(err)
 	stmt.Exec()

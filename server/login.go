@@ -108,10 +108,12 @@ func (c *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AppContext) writeSession(userID int, sID string) {
-	stmt, err := c.db.Prepare("INSERT INTO sessions(user_id, session_id, last_activity) VALUES(?, ?, ?)")
+	stmt, err := c.db.Prepare(`INSERT INTO sessions(user_id, session_id, start_date, expire_date) VALUES(?, ?, ?, ?);`)
 	CheckErr(err)
 	t := time.Now()
-	stmt.Exec(userID, sID, t)
+
+	stmt.Exec(userID, sID, t, t.Add(time.Minute*10))
+
 }
 
 func (c *AppContext) hasSession(userID int) bool {

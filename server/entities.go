@@ -22,6 +22,7 @@ type Post struct {
 }
 
 type Comment struct {
+	CommID       int
 	Author       string
 	TimeCreation string
 	Content      string

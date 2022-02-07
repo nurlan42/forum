@@ -43,7 +43,7 @@ func (c *AppContext) ReadCategories(postID int) ([]string, error) {
 }
 
 func (c *AppContext) ReadComments(postID int) ([]Comment, error) {
-	rows, err := c.db.Query(`SELECT people.username, content, 
+	rows, err := c.db.Query(`SELECT comments.comment_id, people.username, content, 
 	time_creation FROM comments INNER JOIN PEOPLE on comments.user_id = people.user_id WHERE post_id = ?`, postID)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (c *AppContext) ReadComments(postID int) ([]Comment, error) {
 	for rows.Next() {
 		var t time.Time
 		var comment Comment
-		err := rows.Scan(&comment.Author, &comment.Content, &t)
+		err := rows.Scan(&comment.CommID, &comment.Author, &comment.Content, &t)
 		if err != nil {
 			return nil, err
 		}
@@ -71,10 +71,6 @@ func (c *AppContext) showPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.alreadyLogIn(r) {
-		ErrorHandler(w, http.StatusForbidden, "please, log-in first")
-		return
-	}
 	//get id of post new func
 	postID, err := internal.GetPostID(r)
 	if err != nil {

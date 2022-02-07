@@ -9,13 +9,24 @@ import (
 
 func (c *AppContext) showNewPost(w http.ResponseWriter, r *http.Request) {
 
-	if r.URL.Path != "/newpost" {
-		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+	if !c.alreadyLogIn(r) {
+		ErrorHandler(w, http.StatusForbidden, "please log-in first")
 		return
 	}
 
-	if !c.alreadyLogIn(r) {
-		ErrorHandler(w, http.StatusForbidden, "please log-in first")
+	cookie, _ := r.Cookie("session")
+	cookie.MaxAge = 300 // 300 is session length
+
+	// update session table last activity
+	mapSessID, err := c.getSession(cookie.Value)
+	CheckErr(err)
+	userID := mapSessID[cookie.Value]
+	if c.hasSession(userID) {
+		c.updateSession(userID)
+	}
+
+	if r.URL.Path != "/newpost" {
+		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
 

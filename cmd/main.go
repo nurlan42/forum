@@ -21,9 +21,23 @@ func main() {
 	db.CreateCommentsTable()
 	db.CreateCategoryTable()
 	db.CreatePostCategory()
-
+	db.CreatePostReaction()
+	db.CreateCommentReaction()
 	fmt.Println("==== database created successfully ====")
 
-	// run server
+	// delete inactive sessions
+	// ticker := time.NewTicker(5 * time.Second)
+	// // done := make(chan bool)
+	// go func() {
+	// 	for {
+	// 		select {
+	// 		// case <-done:
+	// 		// 	return
+	// 		case <-ticker.C:
+	// 			db.DeleteInactiveSession()
+	// 		}
+	// 	}
+	// }()
 	db.Server()
+	
 }

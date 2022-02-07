@@ -8,7 +8,6 @@ import (
 )
 
 func (c *AppContext) signup(w http.ResponseWriter, r *http.Request) {
-
 	if r.URL.Path != "/signup" {
 		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
@@ -41,14 +40,9 @@ func (c *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
-	} else if r.Method == http.MethodGet {
-		err := tmpl.ExecuteTemplate(w, "signup.html", nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
-		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 	}
+
+	ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 
 }
 

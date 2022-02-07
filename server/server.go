@@ -15,13 +15,19 @@ func (c *AppContext) Server() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/favicon.ico", http.NotFoundHandler().ServeHTTP)
 	mux.HandleFunc("/", c.index)
-	mux.HandleFunc("/register", c.signup)
+	mux.HandleFunc("/signup", c.signup)
 	mux.HandleFunc("/login", c.login)
 	mux.HandleFunc("/logout", c.logout)
 	mux.HandleFunc("/newpost", c.showNewPost)
 	mux.HandleFunc("/post/", c.showPost)
 	mux.HandleFunc("/comment", c.comment)
 	mux.HandleFunc("/newcategory", c.newCategory)
+	mux.HandleFunc("/postreaction", c.postReaction)
+	mux.HandleFunc("/commentreaction", c.commentReaction)
+
+	fileServer := http.FileServer(http.Dir("./ui/static/"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
+
 	srv := &http.Server{
 		Addr:           *port,
 		Handler:        mux,
