@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/index.css">
     <title>index</title>
 </head>
 <body>
@@ -33,10 +34,34 @@
         <input type="submit">
     </form>
     <br><br>
-    {{range .AllPosts}}
-        <a href="post/{{.ID}}">
-            {{.Title}} - {{.Author}} - {{.TimeCreation}} <br><br>
-        </a>
-    {{end}}
+
+
+
+
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Posts</th>
+                    <th>Author</th>
+                    <th>Created</th>
+                    <th>Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .AllPosts}}
+                <tr>
+                    <td><a href="post/{{.ID}}"> {{.Title}}</a></td>
+                    <td>{{.Author}}</td>
+                    <td>{{.TimeCreation}}</td>
+                    <td>1</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+
+
 </body>
 </html>
