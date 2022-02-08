@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/post.css">
     <title>post</title>
 </head>
 <body>
     <h2>Post:</h2>
     <h2>{{.Title}} - {{.Author}} - {{.TimeCreation}}</h2>
     <form action="/postreaction" method="post">
-        <button type="submit" name="reaction" value="1">like</input>
-        <button type="submit" name="reaction" value="0">dislike</button>
+        <button type="submit" name="reaction" value="1">like</button> {{.Like}}
+        <button type="submit" name="reaction" value="0">dislike</button> {{.Dislike}}
         <input hidden name="postID" value="{{.ID}}">
     </form>
  
@@ -25,8 +26,8 @@
     {{range .Comments}}
         {{.Author}} - {{.Content}} - {{.TimeCreation}} <br>
         <form action="/commentreaction" method="post">
-            <button type="submit" name="reaction" value="1">like</input>
-            <button type="submit" name="reaction" value="0">dislike</button>
+            <button type="submit" name="reaction" value="1">like</button> {{.Like}}
+            <button type="submit" name="reaction" value="0">dislike</button> {{.Dislike}}
             <input hidden name="commID" value="{{.CommID}}">
         </form><br>
         {{end}}

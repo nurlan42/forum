@@ -25,6 +25,19 @@ func (c *AppContext) readPosts(postID int) (*Post, error) {
 	return &p, nil
 }
 
+// readPostReaction gets reaction nbr for a post
+func (c *AppContext) readPostReaction(postID int) (like, dislike int) {
+	// var like, dislike int
+	row := c.db.QueryRow(`SELECT COUNT(*) FROM post_reaction WHERE post_id = ? AND reaction = ?;`, postID, 1)
+	err := row.Scan(&like)
+	CheckErr(err)
+
+	row = c.db.QueryRow(`SELECT COUNT(*) FROM post_reaction WHERE post_id = ? AND reaction = ?;`, postID, 0)
+	err = row.Scan(&dislike)
+	CheckErr(err)
+	return like, dislike
+}
+
 func (c *AppContext) ReadCategories(postID int) ([]string, error) {
 	var categories []string
 	rows, err := c.db.Query(`SELECT categories.title FROM post_category INNER JOIN categories 
@@ -57,11 +70,22 @@ func (c *AppContext) ReadComments(postID int) ([]Comment, error) {
 		if err != nil {
 			return nil, err
 		}
-
+		comment.Like, comment.Dislike = c.readCommReaction(comment.CommID)
 		comment.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
 		comments = append(comments, comment)
 	}
 	return comments, nil
+}
+
+func (c *AppContext) readCommReaction(commID int) (like, dislike int) {
+	row := c.db.QueryRow(`SELECT COUNT(*) FROM comment_reaction WHERE comment_id = ? AND reaction = ?;`, commID, 1)
+	err := row.Scan(&like)
+	CheckErr(err)
+
+	row = c.db.QueryRow(`SELECT COUNT(*) FROM comment_reaction WHERE comment_id = ? AND reaction = ?;`, commID, 0)
+	err = row.Scan(&dislike)
+	CheckErr(err)
+	return
 }
 
 // showPost handler
@@ -77,7 +101,6 @@ func (c *AppContext) showPost(w http.ResponseWriter, r *http.Request) {
 		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
-
 	// query to get the post from db
 	p, err := c.readPosts(postID)
 	if err != nil {
@@ -91,6 +114,10 @@ func (c *AppContext) showPost(w http.ResponseWriter, r *http.Request) {
 		ErrorHandler(w, http.StatusInternalServerError, "Not Found")
 		return
 	}
+
+	// get reaction nbr for a post
+	p.Like, p.Dislike = c.readPostReaction(postID)
+
 	// retrive comments from db
 	p.Comments, err = c.ReadComments(postID)
 	if err != nil {

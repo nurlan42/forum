@@ -38,7 +38,6 @@ func (c *AppContext) index(w http.ResponseWriter, r *http.Request) {
 	categories, err := c.readCategories()
 	CheckErr(err)
 
-	fmt.Println("commentNbr=", c.readCommentsNbr(1))
 
 	data := struct {
 		AllPosts   *[]Post
@@ -79,7 +78,6 @@ func (c *AppContext) ReadPosts() (*[]Post, error) {
 		p.CommentNbr = c.readCommentsNbr(p.ID)
 		allPosts = append(allPosts, p)
 	}
-	fmt.Println(allPosts)
 	return &allPosts, nil
 }
 

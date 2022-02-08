@@ -1,9 +1,9 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func (c *AppContext) filter(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +18,11 @@ func (c *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var allPosts *[]Post
+	allPosts, err := c.ReadPosts()
+	if err != nil {
+		ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 	categories, err := c.readCategories()
 	CheckErr(err)
 
@@ -62,8 +66,11 @@ func (c *AppContext) filterByOwner(r *http.Request) *[]Post {
 	var ps []Post
 	for rows.Next() {
 		var p Post
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &p.TimeCreation)
+		var t time.Time
+		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
 		CheckErr(err)
+		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
+		p.CommentNbr = c.readCommentsNbr(p.ID)
 		ps = append(ps, p)
 	}
 
@@ -85,8 +92,11 @@ func (c *AppContext) filterByCategory(r *http.Request, categoryID int) *[]Post {
 
 	for rows.Next() {
 		var p Post
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &p.TimeCreation)
+		var t time.Time
+		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
 		CheckErr(err)
+		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
+		p.CommentNbr = c.readCommentsNbr(p.ID)
 		ps = append(ps, p)
 	}
 
@@ -102,10 +112,12 @@ func (c *AppContext) filterByReaction(emotion int) *[]Post {
 	var ps []Post
 	for rows.Next() {
 		var p Post
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &p.TimeCreation)
+		var t time.Time
+		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
 		CheckErr(err)
+		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
+		p.CommentNbr = c.readCommentsNbr(p.ID)
 		ps = append(ps, p)
 	}
-	fmt.Println(ps)
 	return &ps
 }

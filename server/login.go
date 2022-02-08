@@ -58,6 +58,7 @@ func (c *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 
 	// getting data from database, and saving into the var
 	u, err := c.GetUser(uEmail)
+	// err for incorrect login
 	if err != nil {
 		errorMsg := struct {
 			Msg   string
