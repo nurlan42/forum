@@ -67,10 +67,10 @@ func (c *AppContext) filterByOwner(r *http.Request) *[]Post {
 	for rows.Next() {
 		var p Post
 		var t time.Time
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
 		CheckErr(err)
 		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.ID)
+		p.CommentNbr = c.readCommentsNbr(p.PostID)
 		ps = append(ps, p)
 	}
 
@@ -93,10 +93,10 @@ func (c *AppContext) filterByCategory(r *http.Request, categoryID int) *[]Post {
 	for rows.Next() {
 		var p Post
 		var t time.Time
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
 		CheckErr(err)
 		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.ID)
+		p.CommentNbr = c.readCommentsNbr(p.PostID)
 		ps = append(ps, p)
 	}
 
@@ -113,10 +113,10 @@ func (c *AppContext) filterByReaction(emotion int) *[]Post {
 	for rows.Next() {
 		var p Post
 		var t time.Time
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
 		CheckErr(err)
 		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.ID)
+		p.CommentNbr = c.readCommentsNbr(p.PostID)
 		ps = append(ps, p)
 	}
 	return &ps

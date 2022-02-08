@@ -72,10 +72,10 @@ func (c *AppContext) ReadPosts() (*[]Post, error) {
 	for rows.Next() {
 		p := Post{}
 		var t time.Time
-		err := rows.Scan(&p.ID, &p.Author, &p.Title, &t)
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &t)
 		CheckErr(err)
 		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.ID)
+		p.CommentNbr = c.readCommentsNbr(p.PostID)
 		allPosts = append(allPosts, p)
 	}
 	return &allPosts, nil

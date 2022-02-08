@@ -13,7 +13,7 @@
     <form action="/postreaction" method="post">
         <button type="submit" name="reaction" value="1">like</button> {{.Like}}
         <button type="submit" name="reaction" value="0">dislike</button> {{.Dislike}}
-        <input hidden name="postID" value="{{.ID}}">
+        <input hidden name="postID" value="{{.PostID}}">
     </form>
  
     <br><br>
@@ -35,7 +35,7 @@
 
     <form action="/comment" method="post">
         <input type="text" name="content" placeholder="Leave a comment">
-        <input hidden name="postID" value="{{.ID}}">
+        <input hidden name="postID" value="{{.PostID}}">
         <input type="submit">
     </form><br>
     <a href="/">BACK</a>

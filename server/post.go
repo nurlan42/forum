@@ -15,7 +15,7 @@ func (c *AppContext) readPosts(postID int) (*Post, error) {
 	// putting data into struct from db
 	row := c.db.QueryRow(`SELECT posts.post_id, people.username, title, content, 
 	time_creation FROM posts INNER JOIN people on posts.user_id = people.user_id WHERE post_id = ?`, postID)
-	err := row.Scan(&p.ID, &p.Author, &p.Title, &p.Content, &t)
+	err := row.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
 	if err != nil {
 		return nil, err
 	}

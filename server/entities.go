@@ -13,7 +13,7 @@ type User struct {
 }
 
 type Post struct {
-	ID                        int
+	PostID                        int
 	UserID                    int
 	Title, Content, Author    string
 	TimeCreation              string
