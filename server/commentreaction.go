@@ -5,15 +5,14 @@ import (
 	"strconv"
 )
 
-func (s *AppContext) postReaction(w http.ResponseWriter, r *http.Request) {
-
+func (s *AppContext) commentReaction(w http.ResponseWriter, r *http.Request) {
 	if !s.alreadyLogIn(r) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	r.ParseForm()
 	cookie, _ := r.Cookie("session")
-	postID, err := strconv.Atoi(r.FormValue("postID"))
+	commID, err := strconv.Atoi(r.FormValue("commID"))
 	CheckErr(err)
 
 	mapSessID, _ := s.Sqlite3.GetSession(cookie.Value)
@@ -27,19 +26,25 @@ func (s *AppContext) postReaction(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	b, e := s.Sqlite3.HasReactionPost(userID, postID)
+	b, e := s.Sqlite3.HasReactionComm(userID, commID)
 
+	if !(reaction == 1 || reaction == 0) {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 	if b {
 		if e == reaction {
-			s.Sqlite3.DeletePostReaction(userID, postID)
+			s.Sqlite3.DeleteCommReaction(userID, commID)
 		} else {
-			s.Sqlite3.UpdatePostReaction(userID, postID, reaction)
+			s.Sqlite3.UpdateCommReaction(userID, commID, reaction)
 		}
 	} else {
-		s.Sqlite3.AddPostReaction(userID, postID, reaction)
+		s.Sqlite3.AddCommReaction(userID, commID, reaction)
 	}
-
+	postID, err := s.Sqlite3.ReadPostID(commID)
+	if err != nil {
+		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
 	url := "/post/" + strconv.Itoa(postID)
-
 	http.Redirect(w, r, url, http.StatusSeeOther)
 }

@@ -1,51 +1,62 @@
-package server
+package sqlite3
 
 import (
 	"database/sql"
-	"log"
 )
 
-func ConnectDB(driverName string, dbName string) (*AppContext, error) {
-	db, err := sql.Open(driverName, dbName)
+func ConnectDb(driverName string, SqlDbName string) (*Database, error) {
+	SqlDb, err := sql.Open(driverName, SqlDbName)
 	if err != nil {
 		return nil, err
 	}
-	if err = db.Ping(); err != nil {
+	if err = SqlDb.Ping(); err != nil {
 		return nil, err
 	}
-	return &AppContext{db}, nil
+	return &Database{SqlDb}, nil
 }
 
-func (c *AppContext) CreatePeopleTable() {
-
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "people" (
+func (c *Database) CreatePeopleTable() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "people" (
 		"user_id"	INTEGER NOT NULL,
 		"email"	TEXT NOT NULL UNIQUE,
 		"username"	TEXT NOT NULL,
 		"password"	BLOB NOT NULL,
+		"time_creation" DATETIME,
 		PRIMARY KEY("user_id" AUTOINCREMENT)
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 
 }
 
-func (c *AppContext) CreateSessionTable() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "sessions" (
+func (c *Database) CreateSessionTable() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "sessions" (
 		"user_id"	INTEGER NOT NULL UNIQUE, 
 		"session_id"	TEXT NOT NULL,
 		"start_date"	DATETIME NOT NULL,
 		"expire_date"	DATETIME NOT NULL,
 		FOREIGN KEY("user_id") REFERENCES "people"("user_id")
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }
 
-func (c *AppContext) CreatePostsTable() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "posts" (
+func (c *Database) CreatePostsTable() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "posts" (
 		"post_id"	INTEGER NOT NULL,
 		"user_id"	INTEGER NOT NULL,
 		"title"	TEXT NOT NULL,
@@ -55,14 +66,18 @@ func (c *AppContext) CreatePostsTable() {
 		FOREIGN KEY("user_id") REFERENCES "people"("user_id")
 	);`)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
-	stmt.Exec()
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }
 
-func (c *AppContext) CreateCommentsTable() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "comments" (
+func (c *Database) CreateCommentsTable() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "comments" (
 		"comment_id"	INTEGER NOT NULL,
 		"user_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
@@ -72,24 +87,36 @@ func (c *AppContext) CreateCommentsTable() {
 		FOREIGN KEY("post_id") REFERENCES "posts"("post_id"),
 		PRIMARY KEY("comment_id")
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }
 
-func (c *AppContext) CreateCategoryTable() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "categories" (
+func (c *Database) CreateCategoryTable() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "categories" (
 		"category_id"	INTEGER NOT NULL UNIQUE,
 		"title"	TEXT NOT NULL UNIQUE,
 		PRIMARY KEY("category_id" AUTOINCREMENT)
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }
 
-func (c *AppContext) CreatePostCategory() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "post_category" (
+func (c *Database) CreatePostCategory() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_category" (
 		"pc_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
 		"category_id"	INTEGER NOT NULL,
@@ -97,13 +124,19 @@ func (c *AppContext) CreatePostCategory() {
 		FOREIGN KEY("category_id") REFERENCES "categories"("category_id"),
 		PRIMARY KEY("pc_id" AUTOINCREMENT)
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }
 
-func (c *AppContext) CreatePostReaction() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "post_reaction" (
+func (c *Database) CreatePostReaction() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_reaction" (
 		"pr_id"	INTEGER,
 		"user_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
@@ -112,13 +145,19 @@ func (c *AppContext) CreatePostReaction() {
 		FOREIGN KEY("post_id") REFERENCES "posts"("post_id"),
 		PRIMARY KEY("pr_id")
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }
 
-func (c *AppContext) CreateCommentReaction() {
-	stmt, err := c.db.Prepare(`CREATE TABLE IF NOT EXISTS "comment_reaction" (
+func (c *Database) CreateCommentReaction() error {
+	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "comment_reaction" (
 		"cr_id"	INTEGER,
 		"user_id"	INTEGER NOT NULL,
 		"comment_id"	INTEGER NOT NULL,
@@ -127,7 +166,13 @@ func (c *AppContext) CreateCommentReaction() {
 		FOREIGN KEY("user_id") REFERENCES "people"("user_id"),
 		PRIMARY KEY("cr_id" AUTOINCREMENT)
 	);`)
-	CheckErr(err)
-	stmt.Exec()
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
+	return nil
 }

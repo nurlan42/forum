@@ -2,45 +2,53 @@ package server
 
 import (
 	"net/http"
-	"time"
+	"strconv"
 )
 
-func (c *AppContext) comment(w http.ResponseWriter, r *http.Request) {
-	if !c.alreadyLogIn(r) {
-		ErrorHandler(w, http.StatusForbidden, "please, log-in first")
+func (s *AppContext) comment(w http.ResponseWriter, r *http.Request) {
+	if !s.alreadyLogIn(r) {
+		s.ErrorHandler(w, http.StatusForbidden, "please, log-in first")
 		return
 	}
 	cookie, _ := r.Cookie("session")
 	cookie.MaxAge = 300
 
 	// update session table last activity
-	mapSessID, err := c.getSession(cookie.Value)
-	CheckErr(err)
+	mapSessID, err := s.Sqlite3.GetSession(cookie.Value)
+	if err != nil {
+		s.ErrorHandler(w, 500, "Internal Server Error")
+		return
+	}
 	userID := mapSessID[cookie.Value]
-	if c.hasSession(userID) {
-		c.updateSession(userID)
+	if s.Sqlite3.HasSession(userID) {
+		s.Sqlite3.UpdateSession(userID)
 	}
 
 	if r.Method == http.MethodPost {
 		cookie, err := r.Cookie("session")
-		CheckErr(err)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 
-		session, err := c.getSession(cookie.Value)
+		session, err := s.Sqlite3.GetSession(cookie.Value)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 		userID := session[cookie.Value]
-		postID := r.FormValue("postID")
+		postID, err := strconv.Atoi(r.FormValue("postID"))
+		if err != nil {
+			s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+			return
+		}
 		content := r.FormValue("content")
-
-		stmt, err := c.db.Prepare(`INSERT INTO comments(user_id, 
-			post_id, content, time_creation) VALUES (?, ?, ?, ?)`)
-		CheckErr(err)
-		_, err = stmt.Exec(userID, postID, content, time.Now())
-		CheckErr(err)
-
-		url := "/post/" + postID
+		err = s.Sqlite3.AddComment(userID, postID, content)
+		if err != nil {
+			s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			return
+		}
+		url := "/post/" + strconv.Itoa(postID)
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 

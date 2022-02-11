@@ -1,123 +1,86 @@
 package server
 
 import (
+	"forum/pkg/models"
 	"net/http"
 	"strconv"
-	"time"
 )
 
-func (c *AppContext) filter(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path != "/filter" {
-		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
 
 	if r.Method != http.MethodPost {
-		ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return
 	}
 
-	allPosts, err := c.ReadPosts()
+	allPosts, err := s.Sqlite3.GetAllPosts()
 	if err != nil {
-		ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	categories, err := c.readCategories()
+	categories, err := s.Sqlite3.GetAllCategories()
 	CheckErr(err)
 
 	if r.FormValue("owner") == "yes" {
-		allPosts = c.filterByOwner(r)
+		allPosts, err = s.filterByOwner(r)
+		if err != nil {
+			s.ErrorHandler(w, 500, "Internal Server Error")
+			return
+		}
 	} else if r.FormValue("category") != "" {
 		categoryID, err := strconv.Atoi(r.FormValue("category"))
-		CheckErr(err)
-		allPosts = c.filterByCategory(r, categoryID)
+		if err != nil {
+			s.ErrorHandler(w, 500, "Internal Server Error")
+			return
+		}
+		allPosts, err = s.Sqlite3.GetPostsByCategory(categoryID)
+		if err != nil {
+			s.ErrorHandler(w, 500, "Internal Server Error")
+			return
+		}
 	} else if r.FormValue("reaction") != "" {
 		reaction, err := strconv.Atoi(r.FormValue("reaction"))
-		CheckErr(err)
-		allPosts = c.filterByReaction(reaction)
+		if err != nil {
+			s.ErrorHandler(w, 500, "Internal Server Error")
+			return
+		}
+		allPosts, err = s.Sqlite3.GetPostsByReaction(reaction)
+		if err != nil {
+			s.ErrorHandler(w, 500, "Internal Server Error")
+			return
+		}
 	}
 
 	data := struct {
-		AllPosts   *[]Post
+		AllPosts   *[]models.Post
 		Categories map[string]int
 	}{allPosts, categories}
 
-	err = tmpl.ExecuteTemplate(w, "index.html", data)
+	err = s.Template.ExecuteTemplate(w, "index.html", data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (c *AppContext) filterByOwner(r *http.Request) *[]Post {
+func (s *AppContext) filterByOwner(r *http.Request) (*[]models.Post, error) {
 	// created by you
 	cookie, err := r.Cookie("session")
 	CheckErr(err)
 
-	sID, err := c.getSession(cookie.Value)
+	sID, err := s.Sqlite3.GetSession(cookie.Value)
 	CheckErr(err)
 
 	userID := sID[cookie.Value]
 
-	rows, err := c.db.Query(`SELECT posts.post_id, people.username,title, content, 
-		time_creation FROM posts INNER JOIN people on posts.user_id = people.user_id WHERE posts.user_id = ?;`, userID)
-	CheckErr(err)
-
-	var ps []Post
-	for rows.Next() {
-		var p Post
-		var t time.Time
-		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
-		CheckErr(err)
-		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.PostID)
-		ps = append(ps, p)
+	ps, err := s.Sqlite3.GetPostsByUserID(userID)
+	if err != nil {
+		return nil, err
 	}
 
-	return &ps
-}
-
-func (c *AppContext) filterByCategory(r *http.Request, categoryID int) *[]Post {
-
-	rows, err := c.db.Query(`SELECT posts.post_id, people.username, posts.title,
-		posts.content, posts.time_creation FROM posts INNER JOIN people ON posts.user_id =
-		people.user_id INNER JOIN post_category ON post_category.post_id = posts.post_id 
-		WHERE post_category.category_id = ?`, categoryID)
-
-	// rows, err := c.db.Query(`SELECT posts.post_id, posts.title, posts.content, posts.time_creation FROM
-	// 	posts INNER JOIN post_category ON posts.post_id = post_category.post_id WHERE post_category.category_id = ?;`, categoryID)
-	CheckErr(err)
-
-	var ps []Post
-
-	for rows.Next() {
-		var p Post
-		var t time.Time
-		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
-		CheckErr(err)
-		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.PostID)
-		ps = append(ps, p)
-	}
-
-	return &ps
-}
-
-func (c *AppContext) filterByReaction(emotion int) *[]Post {
-	rows, err := c.db.Query(`SELECT posts.post_id, people.username, posts.title, posts.content, posts.time_creation FROM posts
-		INNER JOIN people ON people.user_id = posts.user_id INNER JOIN post_reaction ON post_reaction.post_id = posts.post_id
-		WHERE post_reaction.reaction = ?;`, emotion)
-	CheckErr(err)
-
-	var ps []Post
-	for rows.Next() {
-		var p Post
-		var t time.Time
-		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
-		CheckErr(err)
-		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
-		p.CommentNbr = c.readCommentsNbr(p.PostID)
-		ps = append(ps, p)
-	}
-	return &ps
+	return ps, nil
 }

@@ -7,24 +7,21 @@ import (
 	"time"
 )
 
-func (c *AppContext) Server() {
-	// database close
-	defer c.db.Close()
-
+func (s *AppContext) Server() {
 	port := flag.String("port", ":8080", "server port")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/favicon.ico", http.NotFoundHandler().ServeHTTP)
-	mux.HandleFunc("/", c.index)
-	mux.HandleFunc("/signup", c.signup)
-	mux.HandleFunc("/login", c.login)
-	mux.HandleFunc("/logout", c.logout)
-	mux.HandleFunc("/newpost", c.showNewPost)
-	mux.HandleFunc("/post/", c.showPost)
-	mux.HandleFunc("/comment", c.comment)
-	mux.HandleFunc("/newcategory", c.newCategory)
-	mux.HandleFunc("/postreaction", c.postReaction)
-	mux.HandleFunc("/commentreaction", c.commentReaction)
-	mux.HandleFunc("/filter", c.filter)
+	mux.HandleFunc("/", s.index)
+	mux.HandleFunc("/signup", s.signup)
+	mux.HandleFunc("/login", s.login)
+	mux.HandleFunc("/logout", s.logout)
+	mux.HandleFunc("/newpost", s.showNewPost)
+	mux.HandleFunc("/post/", s.showPost)
+	mux.HandleFunc("/comment", s.comment)
+	mux.HandleFunc("/newcategory", s.newCategory)
+	mux.HandleFunc("/postreaction", s.postReaction)
+	mux.HandleFunc("/commentreaction", s.commentReaction)
+	mux.HandleFunc("/filter", s.filter)
 
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
@@ -38,5 +35,4 @@ func (c *AppContext) Server() {
 	}
 	log.Printf("Starting server on %v\nlink: http://localhost%v", *port, *port)
 	log.Fatal(srv.ListenAndServe())
-
 }

@@ -5,13 +5,13 @@ import (
 	"net/http"
 )
 
-func (c *AppContext) logout(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) logout(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/logout" {
-		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
 
-	ok := c.alreadyLogIn(r)
+	ok := s.alreadyLogIn(r)
 	if !ok {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
@@ -25,11 +25,11 @@ func (c *AppContext) logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// mapSession stores [session] = userID
-	mapSession, err := c.getSession(cookie.Value)
+	mapSession, err := s.Sqlite3.GetSession(cookie.Value)
 	CheckErr(err)
 
 	userID := mapSession[cookie.Value]
-	c.DeleteSession(userID)
+	s.Sqlite3.DeleteSession(userID)
 
 	cookie = &http.Cookie{
 		Name:   "session",
@@ -38,12 +38,4 @@ func (c *AppContext) logout(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
-}
-
-func (c *AppContext) DeleteSession(userID int) {
-	stmt, err := c.db.Prepare(`DELETE FROM sessions 
-		WHERE user_id = ?;`)
-	CheckErr(err)
-	stmt.Exec(userID)
-	stmt.Close()
 }

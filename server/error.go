@@ -11,7 +11,7 @@ func CheckErr(err error) {
 	}
 }
 
-func ErrorHandler(w http.ResponseWriter, code int, msg string) {
+func (s *AppContext) ErrorHandler(w http.ResponseWriter, code int, msg string) {
 	srvErr := struct {
 		ErrCode int
 		ErrMsg  string
@@ -19,7 +19,7 @@ func ErrorHandler(w http.ResponseWriter, code int, msg string) {
 
 	w.WriteHeader(code)
 
-	err := tmpl.ExecuteTemplate(w, "error.html", srvErr)
+	err := s.Template.ExecuteTemplate(w, "error.html", srvErr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

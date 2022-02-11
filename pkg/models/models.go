@@ -1,19 +1,13 @@
-package server
-
-import "database/sql"
-
-type AppContext struct {
-	db *sql.DB
-}
+package models
 
 type User struct {
-	ID              int
+	UserID              int
 	Email, UserName string
-	Pass            []byte
+	Password        []byte
 }
 
 type Post struct {
-	PostID                        int
+	PostID                    int
 	UserID                    int
 	Title, Content, Author    string
 	TimeCreation              string

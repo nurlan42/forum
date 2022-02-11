@@ -1,63 +1,48 @@
 package server
 
 import (
-	"database/sql"
 	"fmt"
+	"forum/internal"
 	"log"
 	"net/http"
-	"time"
 
-	"git.01.alem.school/Nurlan/forum.git/server/internal"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (c *AppContext) login(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) login(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/login" {
-		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
 
-	ok := c.alreadyLogIn(r)
+	ok := s.alreadyLogIn(r)
 	if ok {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	switch r.Method {
 	case http.MethodGet:
-		err := tmpl.ExecuteTemplate(w, "login.html", nil)
+		err := s.Template.ExecuteTemplate(w, "login.html", nil)
 		//if template does not exist
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case http.MethodPost:
-		c.loginPost(w, r)
+		s.loginPost(w, r)
 	default:
-		ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 	}
 
 }
 
-// GetUser gets data from DB people
-func (c *AppContext) GetUser(uEmail string) (*User, error) {
-	var u User
-	row := c.db.QueryRow("SELECT user_id, email, password FROM people WHERE email = ?;", uEmail)
-	err := row.Scan(&u.ID, &u.Email, &u.Pass)
-	if err != nil && err == sql.ErrNoRows {
-		return nil, err
-	}
+func (s *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
+	var clientEmail, clientPass string
 
-	return &u, nil
-
-}
-
-func (c *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
-	var uEmail, uPass string
-
-	uEmail = r.FormValue("uemail")
-	uPass = r.FormValue("upass")
+	clientEmail = r.FormValue("uemail")
+	clientPass = r.FormValue("upass")
 
 	// getting data from database, and saving into the var
-	u, err := c.GetUser(uEmail)
+	u, err := s.Sqlite3.GetUser(clientEmail)
 	// err for incorrect login
 	if err != nil {
 		errorMsg := struct {
@@ -69,7 +54,7 @@ func (c *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 		}
 		// 401 unauthorised
 		w.WriteHeader(401)
-		err = tmpl.ExecuteTemplate(w, "login.html", errorMsg)
+		err = s.Template.ExecuteTemplate(w, "login.html", errorMsg)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal Server Error", 500)
@@ -77,17 +62,17 @@ func (c *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword(u.Pass, []byte(uPass))
+	err = bcrypt.CompareHashAndPassword(u.Password, []byte(clientPass))
 	if err != nil {
 		errorMsg := struct {
 			Msg   string
 			Email string
 		}{
 			"incorrect password",
-			uEmail,
+			clientEmail,
 		}
 		w.WriteHeader(403)
-		err := tmpl.ExecuteTemplate(w, "login.html", errorMsg)
+		err := s.Template.ExecuteTemplate(w, "login.html", errorMsg)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal Server Error", 500)
@@ -95,34 +80,15 @@ func (c *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.hasSession(u.ID) {
-		c.DeleteSession(u.ID)
+	if s.Sqlite3.HasSession(u.UserID) {
+		s.Sqlite3.DeleteSession(u.UserID)
 	}
 	//create new function
 	sID := internal.SetCookie(w)
 
-	c.writeSession(u.ID, sID.String())
+	s.Sqlite3.CreateSession(u.UserID, sID.String())
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	fmt.Println("========== Logged-in successfully ==========")
 
-}
-
-func (c *AppContext) writeSession(userID int, sID string) {
-	stmt, err := c.db.Prepare(`INSERT INTO sessions(user_id, session_id, start_date, expire_date) VALUES(?, ?, ?, ?);`)
-	CheckErr(err)
-	t := time.Now()
-
-	stmt.Exec(userID, sID, t, t.Add(time.Minute*10))
-
-}
-
-func (c *AppContext) hasSession(userID int) bool {
-	row := c.db.QueryRow(`SELECT session_id FROM sessions WHERE user_id = ?;`, userID)
-	err := row.Scan()
-
-	if err != nil && err == sql.ErrNoRows {
-		return false
-	}
-	return true
 }

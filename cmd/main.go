@@ -2,18 +2,21 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 
-	"git.01.alem.school/Nurlan/forum.git/server/server"
+	"forum/pkg/models/sqlite3"
+	"forum/server"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
-	db, err := server.ConnectDB("sqlite3", "database/forum.db")
+	db, err := sqlite3.ConnectDb("sqlite3", "forum.db")
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
-
+	defer db.SqlDb.Close()
 	// create all the necessary tables
 	db.CreatePeopleTable()
 	db.CreateSessionTable()
@@ -25,20 +28,7 @@ func main() {
 	db.CreateCommentReaction()
 	fmt.Println("==== database created successfully ====")
 
-	// delete inactive sessions
-	// ticker := time.NewTicker(5 * time.Second)
-	// // done := make(chan bool)
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		// case <-done:
-	// 		// 	return
-	// 		case <-ticker.C:
-	// 			db.DeleteInactiveSession()
-	// 		}
-	// 	}
-	// }()
-	
-	db.Server()
-	
+	template := template.Must(template.ParseGlob("ui/html/*.html"))
+	appCtx := server.NewAppContext(db, nil, template)
+	appCtx.Server()
 }

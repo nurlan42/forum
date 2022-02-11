@@ -1,58 +1,58 @@
 package server
 
 import (
-	"database/sql"
+	"forum/pkg/models"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (c *AppContext) signup(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/signup" {
-		ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
-	ok := c.alreadyLogIn(r)
+	ok := s.alreadyLogIn(r)
 	if ok {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
 	if r.Method == http.MethodPost {
-		email := r.FormValue("uemail")
+		var u models.User
+		u.Email = r.FormValue("uemail")
 
-		if c.hasEmail(email) {
-			ErrorHandler(w, http.StatusNotAcceptable, "That email already occupied, Try another.")
+		if s.Sqlite3.HasEmail(u.Email) {
+			s.ErrorHandler(w, http.StatusNotAcceptable, "That email already occupied, Try another.")
 			return
 		}
 
-		userName := r.FormValue("uname")
+		u.UserName = r.FormValue("uname")
 		pass := r.FormValue("upass")
 
-		passBs, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
+		var err error
+		u.Password, err = bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
 		CheckErr(err)
 
-		stmt, err :=
-			c.db.Prepare("INSERT INTO people (email, username, password) VALUES(?, ?, ?)")
-		_, err = stmt.Exec(email, userName, passBs)
+		_, err = s.Sqlite3.InsertUser(&u)
 		CheckErr(err)
-		defer stmt.Close()
 
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+	s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 
 }
 
-// checking email for uniqness
-func (c *AppContext) hasEmail(email string) bool {
-	row := c.db.QueryRow(`SELECT email FROM people WHERE email = ?;`, email)
-	err := row.Scan()
-	if err != nil && err == sql.ErrNoRows {
+func (s *AppContext) alreadyLogIn(r *http.Request) bool {
+	cookie, err := r.Cookie("session")
+	if err != nil {
 		return false
 	}
-	return true
 
+	// getSession from db
+	_, err = s.Sqlite3.GetSession(cookie.Value)
+
+	return err == nil
 }
