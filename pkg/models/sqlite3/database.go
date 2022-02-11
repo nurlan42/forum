@@ -11,42 +11,6 @@ type Database struct {
 	SqlDb *sql.DB
 }
 
-func (c *Database) GetUser(uEmail string) (*models.User, error) {
-	var u models.User
-	row := c.SqlDb.QueryRow("SELECT user_id, email, password FROM people WHERE email = ?;", uEmail)
-	err := row.Scan(&u.UserID, &u.Email, &u.Password)
-	if err != nil && err == sql.ErrNoRows {
-		return nil, err
-	}
-
-	return &u, nil
-
-}
-
-// checking email for uniqness
-func (c *Database) HasEmail(email string) bool {
-	row := c.SqlDb.QueryRow(`SELECT email FROM people WHERE email = ?;`, email)
-	err := row.Scan()
-	if err != nil && err == sql.ErrNoRows {
-		return false
-	}
-	return true
-
-}
-
-func (c *Database) InsertUser(u *models.User) (int64, error) {
-	stmt, err := c.SqlDb.Prepare("INSERT INTO people (email, username, password, time_creation) VALUES(?, ?, ?, ?)")
-	if err != nil {
-		return 0, err
-	}
-	t := time.Now()
-	res, err := stmt.Exec(u.Email, u.UserName, u.Password, t)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
-}
-
 func (c *Database) GetCommentsNbr(postID int) (int, error) {
 	var i int
 	row := c.SqlDb.QueryRow(`SELECT COUNT(*) FROM comments WHERE post_id = ?;`, postID)
@@ -140,10 +104,10 @@ func (c *Database) GetPostsByCategory(categoryID int) (*[]models.Post, error) {
 	return &ps, nil
 }
 
-func (c *Database) GetPostsByReaction(emotion int) (*[]models.Post, error) {
+func (c *Database) GetPostsByReaction(emotion, userID int) (*[]models.Post, error) {
 	rows, err := c.SqlDb.Query(`SELECT posts.post_id, people.username, posts.title, posts.content, posts.time_creation FROM posts
 		INNER JOIN people ON people.user_id = posts.user_id INNER JOIN post_reaction ON post_reaction.post_id = posts.post_id
-		WHERE post_reaction.reaction = ?;`, emotion)
+		WHERE post_reaction.reaction = ? AND posts.user_id = ?;`, emotion, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +130,7 @@ func (c *Database) GetPostsByReaction(emotion int) (*[]models.Post, error) {
 	return &ps, nil
 }
 
-func (c *Database) AddCategory(title string) error {
+func (c *Database) InsertCategory(title string) error {
 	smt, err := c.SqlDb.Prepare(`INSERT INTO categories (title) VALUES(?)`)
 	_, err = smt.Exec(title)
 	if err != nil {

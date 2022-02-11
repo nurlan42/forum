@@ -1,13 +1,17 @@
 package server
 
 import (
+	"fmt"
 	"forum/pkg/models"
 	"net/http"
 	"strconv"
 )
 
 func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
-
+	if !s.alreadyLogIn(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
 	if r.URL.Path != "/filter" {
 		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
@@ -32,7 +36,7 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 			s.ErrorHandler(w, 500, "Internal Server Error")
 			return
 		}
-	} else if r.FormValue("category") != "" {
+	} else if r.FormValue("category") == "" {
 		categoryID, err := strconv.Atoi(r.FormValue("category"))
 		if err != nil {
 			s.ErrorHandler(w, 500, "Internal Server Error")
@@ -44,12 +48,16 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if r.FormValue("reaction") != "" {
+		fmt.Println("err")
 		reaction, err := strconv.Atoi(r.FormValue("reaction"))
 		if err != nil {
 			s.ErrorHandler(w, 500, "Internal Server Error")
 			return
 		}
-		allPosts, err = s.Sqlite3.GetPostsByReaction(reaction)
+		cookie, _ := r.Cookie("session")
+		ss, _ := s.Sqlite3.GetSession(cookie.Value)
+		userID := ss[cookie.Value]
+		allPosts, err = s.Sqlite3.GetPostsByReaction(reaction, userID)
 		if err != nil {
 			s.ErrorHandler(w, 500, "Internal Server Error")
 			return

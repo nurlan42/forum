@@ -18,7 +18,7 @@ func (s *AppContext) newCategory(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		title := r.FormValue("category")
 
-		err = s.Sqlite3.AddCategory(title)
+		err = s.Sqlite3.InsertCategory(title)
 		if err != nil {
 			s.ErrorHandler(w, 500, "Internal Server Error")
 			return
