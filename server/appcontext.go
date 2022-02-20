@@ -8,14 +8,16 @@ import (
 
 type AppContext struct {
 	Sqlite3  *sqlite3.Database
+	InfoLog  *log.Logger
 	ErrorLog *log.Logger
 	Template *template.Template
 }
 
-func NewAppContext(db *sqlite3.Database, logger *log.Logger, tmpl *template.Template) *AppContext {
+func NewAppContext(db *sqlite3.Database, InfoLog, ErrorLog *log.Logger, tmpl *template.Template) *AppContext {
 	return &AppContext{
 		Sqlite3:  db,
-		ErrorLog: logger,
+		InfoLog:  InfoLog,
+		ErrorLog: ErrorLog,
 		Template: tmpl,
 	}
 }

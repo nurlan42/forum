@@ -16,8 +16,7 @@ func (s *AppContext) postReaction(w http.ResponseWriter, r *http.Request) {
 	postID, err := strconv.Atoi(r.FormValue("postID"))
 	CheckErr(err)
 
-	mapSessID, _ := s.Sqlite3.GetSession(cookie.Value)
-	userID := mapSessID[cookie.Value]
+	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
 
 	// 0 is dislike, 1 is like
 	reaction, err := strconv.Atoi(r.FormValue("reaction"))

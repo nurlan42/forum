@@ -14,12 +14,11 @@ func (s *AppContext) comment(w http.ResponseWriter, r *http.Request) {
 	cookie.MaxAge = 300
 
 	// update session table last activity
-	mapSessID, err := s.Sqlite3.GetSession(cookie.Value)
+	userID, err := s.Sqlite3.GetUserID(cookie.Value)
 	if err != nil {
 		s.ErrorHandler(w, 500, "Internal Server Error")
 		return
 	}
-	userID := mapSessID[cookie.Value]
 	if s.Sqlite3.HasSession(userID) {
 		s.Sqlite3.UpdateSession(userID)
 	}
@@ -31,12 +30,11 @@ func (s *AppContext) comment(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		session, err := s.Sqlite3.GetSession(cookie.Value)
+		userID, err := s.Sqlite3.GetUserID(cookie.Value)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-		userID := session[cookie.Value]
 		postID, err := strconv.Atoi(r.FormValue("postID"))
 		if err != nil {
 			s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")

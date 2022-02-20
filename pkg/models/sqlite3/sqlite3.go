@@ -2,7 +2,12 @@ package sqlite3
 
 import (
 	"database/sql"
+	"log"
 )
+
+type Database struct {
+	SqlDb *sql.DB
+}
 
 func ConnectDb(driverName string, SqlDbName string) (*Database, error) {
 	SqlDb, err := sql.Open(driverName, SqlDbName)
@@ -15,7 +20,7 @@ func ConnectDb(driverName string, SqlDbName string) (*Database, error) {
 	return &Database{SqlDb}, nil
 }
 
-func (c *Database) CreatePeopleTable() error {
+func (c *Database) CreatePeopleTable() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "people" (
 		"user_id"	INTEGER NOT NULL,
 		"email"	TEXT NOT NULL UNIQUE,
@@ -25,18 +30,16 @@ func (c *Database) CreatePeopleTable() error {
 		PRIMARY KEY("user_id" AUTOINCREMENT)
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
-
 }
 
-func (c *Database) CreateSessionTable() error {
+func (c *Database) CreateSessionTable() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "sessions" (
 		"user_id"	INTEGER NOT NULL UNIQUE, 
 		"session_id"	TEXT NOT NULL,
@@ -45,17 +48,16 @@ func (c *Database) CreateSessionTable() error {
 		FOREIGN KEY("user_id") REFERENCES "people"("user_id")
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
 }
 
-func (c *Database) CreatePostsTable() error {
+func (c *Database) CreatePostsTable() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "posts" (
 		"post_id"	INTEGER NOT NULL,
 		"user_id"	INTEGER NOT NULL,
@@ -66,17 +68,16 @@ func (c *Database) CreatePostsTable() error {
 		FOREIGN KEY("user_id") REFERENCES "people"("user_id")
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
 }
 
-func (c *Database) CreateCommentsTable() error {
+func (c *Database) CreateCommentsTable() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "comments" (
 		"comment_id"	INTEGER NOT NULL,
 		"user_id"	INTEGER NOT NULL,
@@ -88,34 +89,33 @@ func (c *Database) CreateCommentsTable() error {
 		PRIMARY KEY("comment_id")
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
 }
 
-func (c *Database) CreateCategoryTable() error {
+func (c *Database) CreateCategoryTable() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "categories" (
 		"category_id"	INTEGER NOT NULL UNIQUE,
 		"title"	TEXT NOT NULL UNIQUE,
 		PRIMARY KEY("category_id" AUTOINCREMENT)
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
+
 }
 
-func (c *Database) CreatePostCategory() error {
+func (c *Database) CreatePostCategory() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_category" (
 		"pc_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
@@ -125,17 +125,17 @@ func (c *Database) CreatePostCategory() error {
 		PRIMARY KEY("pc_id" AUTOINCREMENT)
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
+
 }
 
-func (c *Database) CreatePostReaction() error {
+func (c *Database) CreatePostReaction() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_reaction" (
 		"pr_id"	INTEGER,
 		"user_id"	INTEGER NOT NULL,
@@ -146,17 +146,17 @@ func (c *Database) CreatePostReaction() error {
 		PRIMARY KEY("pr_id")
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
+
 }
 
-func (c *Database) CreateCommentReaction() error {
+func (c *Database) CreateCommentReaction() {
 	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "comment_reaction" (
 		"cr_id"	INTEGER,
 		"user_id"	INTEGER NOT NULL,
@@ -167,12 +167,12 @@ func (c *Database) CreateCommentReaction() error {
 		PRIMARY KEY("cr_id" AUTOINCREMENT)
 	);`)
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	_, err = stmt.Exec()
 	if err != nil {
-		return err
+		log.Fatalln(err)
 	}
 	defer stmt.Close()
-	return nil
+
 }

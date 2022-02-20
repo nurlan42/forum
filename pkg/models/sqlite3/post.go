@@ -85,3 +85,88 @@ func (c *Database) GetPostByPostID(postID int) (*models.Post, error) {
 
 	return &p, nil
 }
+
+func (c *Database) GetPostsByUserID(userID int) (*[]models.Post, error) {
+
+	rows, err := c.SqlDb.Query(`SELECT posts.post_id, people.username,title, content, 
+	posts.time_creation FROM posts INNER JOIN people on posts.user_id = people.user_id WHERE posts.user_id = ?;`, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ps []models.Post
+	for rows.Next() {
+		var p models.Post
+		var t time.Time
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
+		if err != nil {
+			return nil, err
+		}
+		p.TimeCreation = t.Format("01-02-2006 15:04:05")
+		p.CommentNbr, err = c.GetCommentsNbr(p.PostID)
+		if err != nil {
+			return nil, err
+		}
+		ps = append(ps, p)
+	}
+	return &ps, nil
+}
+
+// GetPostsByCategory gets all the posts by category
+func (c *Database) GetPostsByCategory(categoryID int) (*[]models.Post, error) {
+
+	rows, err := c.SqlDb.Query(`SELECT posts.post_id, people.username, posts.title,
+		posts.content, posts.time_creation FROM posts INNER JOIN people ON posts.user_id =
+		people.user_id INNER JOIN post_category ON post_category.post_id = posts.post_id 
+		WHERE post_category.category_id = ?`, categoryID)
+
+	// rows, err := c.db.Query(`SELECT posts.post_id, posts.title, posts.content, posts.time_creation FROM
+	// 	posts INNER JOIN post_category ON posts.post_id = post_category.post_id WHERE post_category.category_id = ?;`, categoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ps []models.Post
+	for rows.Next() {
+		var p models.Post
+		var t time.Time
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
+		if err != nil {
+			return nil, err
+		}
+		p.TimeCreation = t.Format("01-02-2006 15:04:05 Monday")
+		p.CommentNbr, err = c.GetCommentsNbr(p.PostID)
+		if err != nil {
+			return nil, err
+		}
+		ps = append(ps, p)
+	}
+
+	return &ps, nil
+}
+
+func (c *Database) GetPostsByReaction(emotion, userID int) (*[]models.Post, error) {
+	rows, err := c.SqlDb.Query(`SELECT posts.post_id, people.username, posts.title, posts.content, posts.time_creation FROM posts
+		INNER JOIN people ON people.user_id = posts.user_id INNER JOIN post_reaction ON post_reaction.post_id = posts.post_id
+		WHERE post_reaction.reaction = ? AND posts.user_id = ?;`, emotion, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var ps []models.Post
+	for rows.Next() {
+		var p models.Post
+		var t time.Time
+		err := rows.Scan(&p.PostID, &p.Author, &p.Title, &p.Content, &t)
+		if err != nil {
+			return nil, err
+		}
+		p.TimeCreation = t.Format("01-02-2006 15:04:05")
+		p.CommentNbr, err = c.GetCommentsNbr(p.PostID)
+		if err != nil {
+			return nil, err
+		}
+		ps = append(ps, p)
+	}
+	return &ps, nil
+}

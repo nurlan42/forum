@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"os"
 
 	"forum/pkg/models/sqlite3"
 	"forum/server"
@@ -12,9 +13,16 @@ import (
 )
 
 func main() {
+	bold := "\033[1m"
+	colorRed := "\033[31m"
+	colorGreen := "\033[32m"
+	reset := "\033[0m"
+	InfoLogger := log.New(os.Stdout, bold+colorGreen+"INFO: "+reset, log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLogger := log.New(os.Stdout, bold+colorRed+"INFO: "+reset, log.Ldate|log.Ltime|log.Lshortfile)
+
 	db, err := sqlite3.ConnectDb("sqlite3", "forum.db")
 	if err != nil {
-		log.Fatal(err)
+		ErrorLogger.Fatalln(err)
 	}
 	defer db.SqlDb.Close()
 	// create all the necessary tables
@@ -28,7 +36,22 @@ func main() {
 	db.CreateCommentReaction()
 	fmt.Println("==== database created successfully ====")
 
+	// delete inactive sessions
+	// ticker := time.NewTicker(5 * time.Second)
+	// done := make(chan bool)
+	// go func() {
+	// 	for {
+	// 		select {
+	// 		case <-done:
+	// 			return
+	// 		case <-ticker.C:
+	// 			db.DeleteInactiveSession()
+	// 		}
+	// 	}
+	// }()
+
 	template := template.Must(template.ParseGlob("ui/html/*.html"))
-	appCtx := server.NewAppContext(db, nil, template)
+	appCtx := server.NewAppContext(db, InfoLogger, ErrorLogger, template)
 	appCtx.Server()
+
 }

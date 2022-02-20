@@ -58,3 +58,13 @@ func (c *Database) GetCommentReaction(commID int) (int, int, error) {
 	}
 	return like, dislike, nil
 }
+
+func (c *Database) GetCommentsNbr(postID int) (int, error) {
+	var i int
+	row := c.SqlDb.QueryRow(`SELECT COUNT(*) FROM comments WHERE post_id = ?;`, postID)
+	err := row.Scan(&i)
+	if err != nil {
+		return 0, err
+	}
+	return i, nil
+}

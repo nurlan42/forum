@@ -8,9 +8,9 @@ func (s *AppContext) newCategory(w http.ResponseWriter, r *http.Request) {
 	cookie.MaxAge = 300
 
 	// update session table last activity
-	mapSessID, err := s.Sqlite3.GetSession(cookie.Value)
+	userID, err := s.Sqlite3.GetUserID(cookie.Value)
 	CheckErr(err)
-	userID := mapSessID[cookie.Value]
+ 
 	if s.Sqlite3.HasSession(userID) {
 		s.Sqlite3.UpdateSession(userID)
 	}

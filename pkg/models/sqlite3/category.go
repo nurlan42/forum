@@ -1,5 +1,14 @@
 package sqlite3
 
+func (c *Database) InsertCategory(title string) error {
+	smt, err := c.SqlDb.Prepare(`INSERT INTO categories (title) VALUES(?)`)
+	_, err = smt.Exec(title)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Database) GetCategoriesByPostID(postID int) ([]string, error) {
 	var categories []string
 	rows, err := c.SqlDb.Query(`SELECT categories.title FROM post_category INNER JOIN categories 
@@ -17,4 +26,29 @@ func (c *Database) GetCategoriesByPostID(postID int) ([]string, error) {
 		categories = append(categories, title)
 	}
 	return categories, nil
+}
+
+func (c *Database) GetAllCategories() (map[string]int, error) {
+	rows, err := c.SqlDb.Query(`SELECT * FROM categories`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	categories := map[string]int{}
+	for rows.Next() {
+		var (
+			id    int
+			title string
+		)
+
+		err := rows.Scan(&id, &title)
+		if err != nil {
+			return nil, err
+		}
+
+		categories[title] = id
+	}
+	return categories, nil
+
 }

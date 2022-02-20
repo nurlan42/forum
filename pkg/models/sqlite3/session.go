@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (c *Database) CreateSession(userID int, sID string) error {
+func (c *Database) InsertSession(userID int, sID string) error {
 	stmt, err := c.SqlDb.Prepare(`INSERT INTO sessions(user_id, session_id, start_date, expire_date) VALUES(?, ?, ?, ?);`)
 	if err != nil {
 		return err
@@ -54,20 +54,14 @@ func (c *Database) HasSession(userID int) bool {
 }
 
 // getSession gets session from db
-func (c *Database) GetSession(sID string) (map[string]int, error) {
-	mapSession := map[string]int{}
+func (c *Database) GetUserID(sID string) (int, error) {
+	var userID int
 
-	var (
-		sessionID string
-		userID    int
-	)
-
-	row := c.SqlDb.QueryRow(`SELECT user_id, session_id FROM sessions WHERE session_id = ?;`, sID)
-	err := row.Scan(&userID, &sessionID)
+	row := c.SqlDb.QueryRow(`SELECT user_id FROM sessions WHERE session_id = ?;`, sID)
+	err := row.Scan(&userID)
 	if err != nil && err == sql.ErrNoRows {
-		return nil, err
+		return 0, err
 	}
 
-	mapSession[sessionID] = userID
-	return mapSession, nil
+	return userID, nil
 }

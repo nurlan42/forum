@@ -55,8 +55,7 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cookie, _ := r.Cookie("session")
-		ss, _ := s.Sqlite3.GetSession(cookie.Value)
-		userID := ss[cookie.Value]
+		userID, _ := s.Sqlite3.GetUserID(cookie.Value)
 		allPosts, err = s.Sqlite3.GetPostsByReaction(reaction, userID)
 		if err != nil {
 			s.ErrorHandler(w, 500, "Internal Server Error")
@@ -80,10 +79,8 @@ func (s *AppContext) filterByOwner(r *http.Request) (*[]models.Post, error) {
 	cookie, err := r.Cookie("session")
 	CheckErr(err)
 
-	sID, err := s.Sqlite3.GetSession(cookie.Value)
+	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
 	CheckErr(err)
-
-	userID := sID[cookie.Value]
 
 	ps, err := s.Sqlite3.GetPostsByUserID(userID)
 	if err != nil {

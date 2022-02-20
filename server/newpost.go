@@ -17,13 +17,12 @@ func (s *AppContext) showNewPost(w http.ResponseWriter, r *http.Request) {
 	cookie.MaxAge = 300 // 300 is session length
 
 	// update session table last activity
-	mapSessID, err := s.Sqlite3.GetSession(cookie.Value)
+	userID, err := s.Sqlite3.GetUserID(cookie.Value)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
-	userID := mapSessID[cookie.Value]
 	if s.Sqlite3.HasSession(userID) {
 		s.Sqlite3.UpdateSession(userID)
 	}
@@ -58,13 +57,13 @@ func (s *AppContext) newPost(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session")
 	CheckErr(err)
 
-	session, err := s.Sqlite3.GetSession(cookie.Value)
+	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 	var p models.Post
-	p.UserID = session[cookie.Value]
+	p.UserID = userID
 	p.Title = r.FormValue("title")
 	p.Content = r.FormValue("post")
 

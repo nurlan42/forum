@@ -15,23 +15,6 @@
 </head>
 <body>
 	{{template "header"}}
-    <!-- <form action="/login" method="post">
-        {{if .Email}}
-            <input type="email" name="uemail" placeholder="Email" value="{{.Email}}">
-        {{else}}
-            <input type="email" name="uemail" placeholder="Email">
-        {{end}}
-        <input type="password" name="upass" placeholder="Password">
-        <input type="submit">
-        <br><br>
-    </form>
-    
-    <a href="/signup">signup</a>
-    <br><br>
-   
-    {{if .}}
-        <p>{{.Msg}}</p>
-    {{end}} -->
 
     <div class="container">
     	<div class="row">
@@ -58,6 +41,9 @@
 									<div class="form-group">
 										<input type="password" name="upass" id="password" tabindex="2" class="form-control" placeholder="Password">
 									</div>
+									{{if .Msg}}
+										{{.Msg}}
+									{{end}}
 									<div class="form-group text-center">
 										<input type="checkbox" tabindex="3" class="" name="remember" id="remember">
 										<label for="remember"> Remember Me</label>

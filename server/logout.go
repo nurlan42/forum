@@ -25,10 +25,9 @@ func (s *AppContext) logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// mapSession stores [session] = userID
-	mapSession, err := s.Sqlite3.GetSession(cookie.Value)
+	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
 	CheckErr(err)
 
-	userID := mapSession[cookie.Value]
 	s.Sqlite3.DeleteSession(userID)
 
 	cookie = &http.Cookie{

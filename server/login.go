@@ -46,11 +46,9 @@ func (s *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 	// err for incorrect login
 	if err != nil {
 		errorMsg := struct {
-			Msg   string
-			Email string
+			Msg string
 		}{
 			"incorrect login",
-			"",
 		}
 		// 401 unauthorised
 		w.WriteHeader(401)
@@ -65,11 +63,9 @@ func (s *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword(u.Password, []byte(clientPass))
 	if err != nil {
 		errorMsg := struct {
-			Msg   string
-			Email string
+			Msg string
 		}{
 			"incorrect password",
-			clientEmail,
 		}
 		w.WriteHeader(403)
 		err := s.Template.ExecuteTemplate(w, "login.html", errorMsg)
@@ -86,7 +82,7 @@ func (s *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 	//create new function
 	sID := internal.SetCookie(w)
 
-	s.Sqlite3.CreateSession(u.UserID, sID.String())
+	s.Sqlite3.InsertSession(u.UserID, sID.String())
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 	fmt.Println("========== Logged-in successfully ==========")
