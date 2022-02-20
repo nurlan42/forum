@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (s *AppContext) showNewPost(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) postNew(w http.ResponseWriter, r *http.Request) {
 
 	if !s.alreadyLogIn(r) {
 		s.ErrorHandler(w, http.StatusForbidden, "please log-in first")
@@ -17,17 +17,10 @@ func (s *AppContext) showNewPost(w http.ResponseWriter, r *http.Request) {
 	cookie.MaxAge = 300 // 300 is session length
 
 	// update session table last activity
-	userID, err := s.Sqlite3.GetUserID(cookie.Value)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
+	s.Sqlite3.UpdateSession(userID)
 
-	if s.Sqlite3.HasSession(userID) {
-		s.Sqlite3.UpdateSession(userID)
-	}
-
-	if r.URL.Path != "/newpost" {
+	if r.URL.Path != "/post/new" {
 		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
@@ -45,30 +38,30 @@ func (s *AppContext) showNewPost(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 	case http.MethodPost:
-		s.newPost(w, r)
+		s.newPostMethodPost(w, r)
 	default:
 		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
-
 	}
 
 }
 
-func (s *AppContext) newPost(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session")
-	CheckErr(err)
+func (s *AppContext) newPostMethodPost(w http.ResponseWriter, r *http.Request) {
 
-	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	if !s.alreadyLogIn(r) {
+		s.ErrorHandler(w, http.StatusForbidden, "please log-in first")
 		return
 	}
+	cookie, _ := r.Cookie("session")
+	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
+	s.Sqlite3.UpdateSession(userID)
+
 	var p models.Post
 	p.UserID = userID
 	p.Title = r.FormValue("title")
 	p.Content = r.FormValue("post")
 
 	// putting recieved data into database
-	postID, err := s.Sqlite3.CreatePost(&p)
+	postID, err := s.Sqlite3.InserPost(&p)
 	if err != nil {
 		if err != nil {
 			s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
@@ -76,12 +69,11 @@ func (s *AppContext) newPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = s.Sqlite3.AddPostCategory(r, postID)
+	err = s.Sqlite3.InsertPostCategory(r, postID)
 	if err != nil {
 		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-
 }

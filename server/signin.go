@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"forum/internal"
 	"log"
 	"net/http"
@@ -9,8 +8,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (s *AppContext) login(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/login" {
+func (s *AppContext) signin(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/signin" {
 		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
@@ -22,20 +21,20 @@ func (s *AppContext) login(w http.ResponseWriter, r *http.Request) {
 	}
 	switch r.Method {
 	case http.MethodGet:
-		err := s.Template.ExecuteTemplate(w, "login.html", nil)
+		err := s.Template.ExecuteTemplate(w, "signin.html", nil)
 		//if template does not exist
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case http.MethodPost:
-		s.loginPost(w, r)
+		s.signinPost(w, r)
 	default:
 		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 	}
 
 }
 
-func (s *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
 	var clientEmail, clientPass string
 
 	clientEmail = r.FormValue("uemail")
@@ -85,6 +84,6 @@ func (s *AppContext) loginPost(w http.ResponseWriter, r *http.Request) {
 	s.Sqlite3.InsertSession(u.UserID, sID.String())
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	fmt.Println("========== Logged-in successfully ==========")
+	s.InfoLog.Println("========== Sign-in successfully ==========")
 
 }

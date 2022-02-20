@@ -10,7 +10,7 @@ import (
 
 func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/signup" {
-		
+
 		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
@@ -54,7 +54,11 @@ func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 
 		var err error
 		u.Password, err = bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
-		CheckErr(err)
+		if err != nil {
+			s.ErrorLog.Println(err)
+			s.ErrorHandler(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			return
+		}
 
 		_, err = s.Sqlite3.InsertUser(&u)
 		if err != nil {
@@ -62,7 +66,7 @@ func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
 

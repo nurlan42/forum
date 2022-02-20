@@ -8,7 +8,7 @@ import (
 func (s *AppContext) postReaction(w http.ResponseWriter, r *http.Request) {
 
 	if !s.alreadyLogIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
 	r.ParseForm()

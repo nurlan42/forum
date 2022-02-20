@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (c *Database) CreatePost(p *models.Post) (int64, error) {
+func (c *Database) InserPost(p *models.Post) (int64, error) {
 	res, err := c.SqlDb.Exec(`INSERT INTO posts (user_id, title, content,
 		time_creation) VALUES(?, ?, ?, ?)`, p.UserID, p.Title, p.Content, time.Now())
 	if err != nil {
@@ -21,7 +21,7 @@ func (c *Database) CreatePost(p *models.Post) (int64, error) {
 }
 
 // CreatePostCategory
-func (c *Database) AddPostCategory(r *http.Request, postID int64) error {
+func (c *Database) InsertPostCategory(r *http.Request, postID int64) error {
 	stmt, err := c.SqlDb.Prepare(`INSERT INTO post_category(post_id, category_id) VALUES(?, ?);`)
 	if err != nil {
 		return err

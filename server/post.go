@@ -8,7 +8,7 @@ import (
 )
 
 // showPost handler
-func (s *AppContext) showPost(w http.ResponseWriter, r *http.Request) {
+func (s *AppContext) post(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
 		return

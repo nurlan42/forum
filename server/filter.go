@@ -9,7 +9,7 @@ import (
 
 func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 	if !s.alreadyLogIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
 	if r.URL.Path != "/filter" {

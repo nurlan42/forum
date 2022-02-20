@@ -1,12 +1,11 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 )
 
-func (s *AppContext) logout(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/logout" {
+func (s *AppContext) signout(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/signout" {
 		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
@@ -17,16 +16,10 @@ func (s *AppContext) logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie("session")
-	if err != nil {
-		fmt.Println("cookie unexist")
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
+	cookie, _ := r.Cookie("session")
 
 	// mapSession stores [session] = userID
 	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
-	CheckErr(err)
 
 	s.Sqlite3.DeleteSession(userID)
 
