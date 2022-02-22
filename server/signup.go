@@ -65,7 +65,7 @@ func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 			s.ErrorHandler(w, http.StatusNotAcceptable, "That email already occupied. Try another.")
 			return
 		}
-
+		s.InfoLog.Println(u.Email, "signed-up successfully")
 		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}

@@ -1,3 +1,4 @@
+// Package sqlite3 contains function and methods that creates tables in db
 package sqlite3
 
 import (
@@ -5,23 +6,26 @@ import (
 	"log"
 )
 
+// Database keeps connection to database
 type Database struct {
-	SqlDb *sql.DB
+	SQLDb *sql.DB
 }
 
-func ConnectDb(driverName string, SqlDbName string) (*Database, error) {
-	SqlDb, err := sql.Open(driverName, SqlDbName)
+// ConnectDb connects to database sqlite3
+func ConnectDb(driverName string, SQLDbName string) (*Database, error) {
+	SQLDb, err := sql.Open(driverName, SQLDbName)
 	if err != nil {
 		return nil, err
 	}
-	if err = SqlDb.Ping(); err != nil {
+	if err = SQLDb.Ping(); err != nil {
 		return nil, err
 	}
-	return &Database{SqlDb}, nil
+	return &Database{SQLDb}, nil
 }
 
+// CreatePeopleTable creates table naming people in database
 func (c *Database) CreatePeopleTable() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "people" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "people" (
 		"user_id"	INTEGER NOT NULL,
 		"email"	TEXT NOT NULL UNIQUE,
 		"username"	TEXT NOT NULL,
@@ -39,8 +43,9 @@ func (c *Database) CreatePeopleTable() {
 	defer stmt.Close()
 }
 
+// CreateSessionTable creates table to store sessions with userID
 func (c *Database) CreateSessionTable() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "sessions" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "sessions" (
 		"user_id"	INTEGER NOT NULL UNIQUE, 
 		"session_id"	TEXT NOT NULL,
 		"start_date"	DATETIME NOT NULL,
@@ -58,7 +63,7 @@ func (c *Database) CreateSessionTable() {
 }
 
 func (c *Database) CreatePostsTable() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "posts" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "posts" (
 		"post_id"	INTEGER NOT NULL,
 		"user_id"	INTEGER NOT NULL,
 		"title"	TEXT NOT NULL,
@@ -78,7 +83,7 @@ func (c *Database) CreatePostsTable() {
 }
 
 func (c *Database) CreateCommentsTable() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "comments" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "comments" (
 		"comment_id"	INTEGER NOT NULL,
 		"user_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
@@ -99,7 +104,7 @@ func (c *Database) CreateCommentsTable() {
 }
 
 func (c *Database) CreateCategoryTable() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "categories" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "categories" (
 		"category_id"	INTEGER NOT NULL UNIQUE,
 		"title"	TEXT NOT NULL UNIQUE,
 		PRIMARY KEY("category_id" AUTOINCREMENT)
@@ -116,7 +121,7 @@ func (c *Database) CreateCategoryTable() {
 }
 
 func (c *Database) CreatePostCategory() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_category" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_category" (
 		"pc_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
 		"category_id"	INTEGER NOT NULL,
@@ -136,7 +141,7 @@ func (c *Database) CreatePostCategory() {
 }
 
 func (c *Database) CreatePostReaction() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_reaction" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "post_reaction" (
 		"pr_id"	INTEGER,
 		"user_id"	INTEGER NOT NULL,
 		"post_id"	INTEGER NOT NULL,
@@ -157,7 +162,7 @@ func (c *Database) CreatePostReaction() {
 }
 
 func (c *Database) CreateCommentReaction() {
-	stmt, err := c.SqlDb.Prepare(`CREATE TABLE IF NOT EXISTS "comment_reaction" (
+	stmt, err := c.SQLDb.Prepare(`CREATE TABLE IF NOT EXISTS "comment_reaction" (
 		"cr_id"	INTEGER,
 		"user_id"	INTEGER NOT NULL,
 		"comment_id"	INTEGER NOT NULL,

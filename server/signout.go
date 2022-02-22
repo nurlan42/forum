@@ -6,7 +6,7 @@ import (
 
 func (s *AppContext) signout(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/signout" {
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 

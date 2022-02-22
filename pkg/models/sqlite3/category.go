@@ -1,7 +1,7 @@
 package sqlite3
 
 func (c *Database) InsertCategory(title string) error {
-	smt, err := c.SqlDb.Prepare(`INSERT INTO categories (title) VALUES(?)`)
+	smt, err := c.SQLDb.Prepare(`INSERT INTO categories (title) VALUES(?)`)
 	_, err = smt.Exec(title)
 	if err != nil {
 		return err
@@ -11,7 +11,7 @@ func (c *Database) InsertCategory(title string) error {
 
 func (c *Database) GetCategoriesByPostID(postID int) ([]string, error) {
 	var categories []string
-	rows, err := c.SqlDb.Query(`SELECT categories.title FROM post_category INNER JOIN categories 
+	rows, err := c.SQLDb.Query(`SELECT categories.title FROM post_category INNER JOIN categories 
 	on post_category.category_id = categories.category_id WHERE post_category.post_id = ?;`, postID)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (c *Database) GetCategoriesByPostID(postID int) ([]string, error) {
 }
 
 func (c *Database) GetAllCategories() (map[string]int, error) {
-	rows, err := c.SqlDb.Query(`SELECT * FROM categories`)
+	rows, err := c.SQLDb.Query(`SELECT * FROM categories`)
 	if err != nil {
 		return nil, err
 	}

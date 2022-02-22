@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"forum/pkg/models"
 	"net/http"
 	"strconv"
@@ -39,6 +38,7 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 	} else if r.FormValue("category") == "" {
 		categoryID, err := strconv.Atoi(r.FormValue("category"))
 		if err != nil {
+			s.ErrorLog.Println(err)
 			s.ErrorHandler(w, 500, "Internal Server Error")
 			return
 		}
@@ -48,7 +48,6 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if r.FormValue("reaction") != "" {
-		fmt.Println("err")
 		reaction, err := strconv.Atoi(r.FormValue("reaction"))
 		if err != nil {
 			s.ErrorHandler(w, 500, "Internal Server Error")
@@ -76,11 +75,9 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 
 func (s *AppContext) filterByOwner(r *http.Request) (*[]models.Post, error) {
 	// created by you
-	cookie, err := r.Cookie("session")
-	CheckErr(err)
+	cookie, _ := r.Cookie("session")
 
 	userID, _ := s.Sqlite3.GetUserID(cookie.Value)
-	CheckErr(err)
 
 	ps, err := s.Sqlite3.GetPostsByUserID(userID)
 	if err != nil {

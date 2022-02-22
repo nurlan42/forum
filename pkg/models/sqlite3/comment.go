@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Database) AddComment(userID, postID int, content string) error {
-	stmt, err := c.SqlDb.Prepare(`INSERT INTO comments(user_id, 
+	stmt, err := c.SQLDb.Prepare(`INSERT INTO comments(user_id, 
 		post_id, content, time_creation) VALUES (?, ?, ?, ?)`)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (c *Database) AddComment(userID, postID int, content string) error {
 }
 
 func (c *Database) GetCommentsByPostID(postID int) ([]models.Comment, error) {
-	rows, err := c.SqlDb.Query(`SELECT comments.comment_id, people.username, content, 
+	rows, err := c.SQLDb.Query(`SELECT comments.comment_id, people.username, content, 
 	comments.time_creation FROM comments INNER JOIN PEOPLE on comments.user_id = people.user_id WHERE post_id = ?`, postID)
 	if err != nil {
 		return nil, err
@@ -45,13 +45,13 @@ func (c *Database) GetCommentsByPostID(postID int) ([]models.Comment, error) {
 
 func (c *Database) GetCommentReaction(commID int) (int, int, error) {
 	var like, dislike int
-	row := c.SqlDb.QueryRow(`SELECT COUNT(*) FROM comment_reaction WHERE comment_id = ? AND reaction = ?;`, commID, 1)
+	row := c.SQLDb.QueryRow(`SELECT COUNT(*) FROM comment_reaction WHERE comment_id = ? AND reaction = ?;`, commID, 1)
 	err := row.Scan(&like)
 	if err != nil {
 		return 0, 0, err
 	}
 
-	row = c.SqlDb.QueryRow(`SELECT COUNT(*) FROM comment_reaction WHERE comment_id = ? AND reaction = ?;`, commID, 0)
+	row = c.SQLDb.QueryRow(`SELECT COUNT(*) FROM comment_reaction WHERE comment_id = ? AND reaction = ?;`, commID, 0)
 	err = row.Scan(&dislike)
 	if err != nil {
 		return 0, 0, err
@@ -61,7 +61,7 @@ func (c *Database) GetCommentReaction(commID int) (int, int, error) {
 
 func (c *Database) GetCommentsNbr(postID int) (int, error) {
 	var i int
-	row := c.SqlDb.QueryRow(`SELECT COUNT(*) FROM comments WHERE post_id = ?;`, postID)
+	row := c.SQLDb.QueryRow(`SELECT COUNT(*) FROM comments WHERE post_id = ?;`, postID)
 	err := row.Scan(&i)
 	if err != nil {
 		return 0, err

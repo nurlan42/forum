@@ -11,6 +11,7 @@ func CheckErr(err error) {
 	}
 }
 
+// ErrorHandler handles 
 func (s *AppContext) ErrorHandler(w http.ResponseWriter, code int, msg string) {
 	srvErr := struct {
 		ErrCode int

@@ -26,10 +26,10 @@ func (s *AppContext) postReaction(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	b, e := s.Sqlite3.HasReactionPost(userID, postID)
+	ok, emotion := s.Sqlite3.HasReactionPost(userID, postID)
 
-	if b {
-		if e == reaction {
+	if ok {
+		if emotion == reaction {
 			s.Sqlite3.DeletePostReaction(userID, postID)
 		} else {
 			s.Sqlite3.UpdatePostReaction(userID, postID, reaction)

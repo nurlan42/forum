@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 	"os"
+	"time"
 
 	"forum/pkg/models/sqlite3"
 	"forum/server"
@@ -23,8 +24,9 @@ func main() {
 	if err != nil {
 		ErrorLogger.Fatalln(err)
 	}
-	defer db.SqlDb.Close()
-	// create all the necessary tables
+	defer db.SQLDb.Close()
+
+	// create database tables
 	db.CreatePeopleTable()
 	db.CreateSessionTable()
 	db.CreatePostsTable()
@@ -33,24 +35,28 @@ func main() {
 	db.CreatePostCategory()
 	db.CreatePostReaction()
 	db.CreateCommentReaction()
-	InfoLogger.Println("==== database created successfully ====")
+	InfoLogger.Println("database created successfully")
 
 	// delete inactive sessions
-	// ticker := time.NewTicker(5 * time.Second)
-	// done := make(chan bool)
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-done:
-	// 			return
-	// 		case <-ticker.C:
-	// 			db.DeleteInactiveSession()
-	// 		}
-	// 	}
-	// }()
+	ticker := time.NewTicker(5 * time.Second)
+	go deleteSessions(db, ticker)
+
 	port := ":8080"
 	template := template.Must(template.ParseGlob("ui/html/*.html"))
 	appCtx := server.NewAppContext(db, InfoLogger, ErrorLogger, template)
 	appCtx.Server(port)
 
+}
+
+// deleteSessions removes inactive sessions
+func deleteSessions(db *sqlite3.Database, ticker *time.Ticker) {
+	done := make(chan bool)
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			db.DeleteInactiveSession()
+		}
+	}
 }

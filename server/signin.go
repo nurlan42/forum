@@ -84,6 +84,6 @@ func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
 	s.Sqlite3.InsertSession(u.UserID, sID.String())
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	s.InfoLog.Println("========== Sign-in successfully ==========")
+	s.InfoLog.Println(u.Email, "signed-up successfully")
 
 }

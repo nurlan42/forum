@@ -2,12 +2,12 @@ package sqlite3
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"time"
 )
 
 func (c *Database) InsertSession(userID int, sID string) error {
-	stmt, err := c.SqlDb.Prepare(`INSERT INTO sessions(user_id, session_id, start_date, expire_date) VALUES(?, ?, ?, ?);`)
+	stmt, err := c.SQLDb.Prepare(`INSERT INTO sessions(user_id, session_id, start_date, expire_date) VALUES(?, ?, ?, ?);`)
 	if err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func (c *Database) InsertSession(userID int, sID string) error {
 	return nil
 }
 func (c *Database) UpdateSession(userID int) error {
-	_, err := c.SqlDb.Exec(`UPDATE sessions SET start_date = ?, expire_date = ? WHERE user_id = ?;`, time.Now(), time.Now().Add(time.Minute*5), userID)
+	_, err := c.SQLDb.Exec(`UPDATE sessions SET start_date = ?, expire_date = ? WHERE user_id = ?;`, time.Now(), time.Now().Add(time.Minute*5), userID)
 	if err != nil {
 		return err
 	}
@@ -24,8 +24,8 @@ func (c *Database) UpdateSession(userID int) error {
 }
 
 func (c *Database) DeleteInactiveSession() error {
-	fmt.Println("DeleteInactiveSession()")
-	_, err := c.SqlDb.Exec(`DELETE from sessions WHERE expire_date <= ?;`, time.Now())
+	log.Println("delete inactive sessions")
+	_, err := c.SQLDb.Exec(`DELETE from sessions WHERE expire_date <= ?;`, time.Now())
 	if err != nil {
 		return err
 	}
@@ -33,7 +33,7 @@ func (c *Database) DeleteInactiveSession() error {
 }
 
 func (c *Database) DeleteSession(userID int) error {
-	stmt, err := c.SqlDb.Prepare(`DELETE FROM sessions 
+	stmt, err := c.SQLDb.Prepare(`DELETE FROM sessions 
 		WHERE user_id = ?;`)
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (c *Database) DeleteSession(userID int) error {
 }
 
 func (c *Database) HasSession(userID int) bool {
-	row := c.SqlDb.QueryRow(`SELECT session_id FROM sessions WHERE user_id = ?;`, userID)
+	row := c.SQLDb.QueryRow(`SELECT session_id FROM sessions WHERE user_id = ?;`, userID)
 	err := row.Scan()
 
 	if err != nil && err == sql.ErrNoRows {
@@ -57,7 +57,7 @@ func (c *Database) HasSession(userID int) bool {
 func (c *Database) GetUserID(sID string) (int, error) {
 	var userID int
 
-	row := c.SqlDb.QueryRow(`SELECT user_id FROM sessions WHERE session_id = ?;`, sID)
+	row := c.SQLDb.QueryRow(`SELECT user_id FROM sessions WHERE session_id = ?;`, sID)
 	err := row.Scan(&userID)
 	if err != nil && err == sql.ErrNoRows {
 		return 0, err

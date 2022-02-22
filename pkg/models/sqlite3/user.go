@@ -8,7 +8,7 @@ import (
 
 func (c *Database) GetUser(uEmail string) (*models.User, error) {
 	var u models.User
-	row := c.SqlDb.QueryRow("SELECT user_id, email, password FROM people WHERE email = ?;", uEmail)
+	row := c.SQLDb.QueryRow("SELECT user_id, email, password FROM people WHERE email = ?;", uEmail)
 	err := row.Scan(&u.UserID, &u.Email, &u.Password)
 	if err != nil && err == sql.ErrNoRows {
 		return nil, err
@@ -20,7 +20,7 @@ func (c *Database) GetUser(uEmail string) (*models.User, error) {
 
 // checking email for uniqness
 func (c *Database) HasEmail(email string) bool {
-	row := c.SqlDb.QueryRow(`SELECT email FROM people WHERE email = ?;`, email)
+	row := c.SQLDb.QueryRow(`SELECT email FROM people WHERE email = ?;`, email)
 	err := row.Scan()
 	if err != nil && err == sql.ErrNoRows {
 		return false
@@ -30,7 +30,7 @@ func (c *Database) HasEmail(email string) bool {
 }
 
 func (c *Database) InsertUser(u *models.User) (int64, error) {
-	stmt, err := c.SqlDb.Prepare("INSERT INTO people (email, username, password, time_creation) VALUES(?, ?, ?, ?)")
+	stmt, err := c.SQLDb.Prepare("INSERT INTO people (email, username, password, time_creation) VALUES(?, ?, ?, ?)")
 	if err != nil {
 		return 0, err
 	}
