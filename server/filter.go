@@ -12,18 +12,18 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Path != "/filter" {
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.badReq(w)
 		return
 	}
 
 	if r.Method != http.MethodPost {
-		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.methodNotAllowed(w)
 		return
 	}
 
 	allPosts, err := s.Sqlite3.GetAllPosts()
 	if err != nil {
-		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		s.serverErr(w)
 		return
 	}
 	categories, err := s.Sqlite3.GetAllCategories()
@@ -32,32 +32,32 @@ func (s *AppContext) filter(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("owner") == "yes" {
 		allPosts, err = s.filterByOwner(r)
 		if err != nil {
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 	} else if r.FormValue("category") == "" {
 		categoryID, err := strconv.Atoi(r.FormValue("category"))
 		if err != nil {
 			s.ErrorLog.Println(err)
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 		allPosts, err = s.Sqlite3.GetPostsByCategory(categoryID)
 		if err != nil {
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 	} else if r.FormValue("reaction") != "" {
 		reaction, err := strconv.Atoi(r.FormValue("reaction"))
 		if err != nil {
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 		cookie, _ := r.Cookie("session")
 		userID, _ := s.Sqlite3.GetUserID(cookie.Value)
 		allPosts, err = s.Sqlite3.GetPostsByReaction(reaction, userID)
 		if err != nil {
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 	}

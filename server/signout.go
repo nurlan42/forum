@@ -6,13 +6,13 @@ import (
 
 func (s *AppContext) signout(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/signout" {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		s.badReq(w)
 		return
 	}
 
 	ok := s.alreadyLogIn(r)
 	if !ok {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/signin", http.StatusSeeOther)
 		return
 	}
 
@@ -29,5 +29,5 @@ func (s *AppContext) signout(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	}
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/signin", http.StatusSeeOther)
 }

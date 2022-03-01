@@ -23,3 +23,9 @@ type Comment struct {
 	Content       string
 	Like, Dislike int
 }
+
+
+type Err struct {
+	ErrCode int 
+	ErrMsg string
+}

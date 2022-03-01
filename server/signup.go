@@ -10,13 +10,12 @@ import (
 
 func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/signup" {
-
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.badReq(w)
 		return
 	}
 
 	if r.Method != http.MethodPost {
-		s.ErrorHandler(w, http.StatusNotAcceptable, "That email already occupied. Try another.")
+		s.methodNotAllowed(w)
 		return
 	}
 
@@ -34,21 +33,21 @@ func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 		passConfirm := r.FormValue("confirm-upass")
 
 		if ok := internal.CheckName(u.UserName); !ok {
-			s.ErrorHandler(w, http.StatusForbidden, "Please, be sure to write valid name")
+			s.clientErr(w, models.Err{ErrCode: http.StatusBadRequest, ErrMsg: "Please, be sure to write valid name"})
 			return
 		}
 		if ok := internal.CheckEmail(u.Email); !ok {
-			s.ErrorHandler(w, http.StatusForbidden, "Please, be sure to write valid email")
+			s.clientErr(w, models.Err{ErrCode: http.StatusBadRequest, ErrMsg: "Please, be sure to write valid email"})
 			return
 		}
 
 		if pass != passConfirm {
-			s.ErrorHandler(w, http.StatusForbidden, "password is empty / doesn't match")
+			s.clientErr(w, models.Err{ErrCode: http.StatusBadRequest, ErrMsg: "password is empty / doesn't match"})
 			return
 		}
 
 		if len(pass) < 5 {
-			s.ErrorHandler(w, http.StatusNotAcceptable, "Password should be more than 5 symbols")
+			s.clientErr(w, models.Err{ErrCode: http.StatusBadRequest, ErrMsg: "Password should be more than 5 symbols"})
 			return
 		}
 
@@ -56,13 +55,13 @@ func (s *AppContext) signup(w http.ResponseWriter, r *http.Request) {
 		u.Password, err = bcrypt.GenerateFromPassword([]byte(pass), bcrypt.MinCost)
 		if err != nil {
 			s.ErrorLog.Println(err)
-			s.ErrorHandler(w, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+			s.serverErr(w)
 			return
 		}
 
 		_, err = s.Sqlite3.InsertUser(&u)
 		if err != nil {
-			s.ErrorHandler(w, http.StatusNotAcceptable, "That email already occupied. Try another.")
+			s.clientErr(w, models.Err{http.StatusNotAcceptable, "That email already occupied. Try another."})
 			return
 		}
 		s.InfoLog.Println(u.Email, "signed-up successfully")

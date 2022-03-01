@@ -6,27 +6,30 @@ import (
 )
 
 func (s *AppContext) index(w http.ResponseWriter, r *http.Request) {
-
 	if r.URL.Path != "/" {
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.ErrorLog.Println(r.URL.Path)
+		s.badReq(w)
 		return
 	}
 
 	if r.Method != http.MethodGet {
-		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.methodNotAllowed(w)
 		return
 	}
 
 	// new function
 	allPosts, err := s.Sqlite3.GetAllPosts()
 	if err != nil {
-		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		s.serverErr(w)
 		return
 	}
 
 	// categories
 	categories, err := s.Sqlite3.GetAllCategories()
-	CheckErr(err)
+	if err != nil {
+		s.serverErr(w)
+		return
+	}
 
 	data := struct {
 		AllPosts   *[]models.Post

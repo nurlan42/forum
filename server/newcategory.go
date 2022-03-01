@@ -1,16 +1,13 @@
 package server
 
-import "net/http"
+import (
+	"net/http"
+)
 
 func (s *AppContext) categoryNew(w http.ResponseWriter, r *http.Request) {
 
-	if ok := s.alreadyLogIn(r); !ok {
-		s.ErrorHandler(w, http.StatusForbidden, "please, log-in first")
-		return
-	}
-
 	if r.URL.Path != "/category/new" {
-		s.ErrorHandler(w, http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+		s.badReq(w)
 		return
 	}
 
@@ -29,7 +26,7 @@ func (s *AppContext) categoryNew(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		err = s.Template.ExecuteTemplate(w, "newcategory.html", nil)
 		if err != nil {
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 	case http.MethodPost:
@@ -37,13 +34,13 @@ func (s *AppContext) categoryNew(w http.ResponseWriter, r *http.Request) {
 
 		err = s.Sqlite3.InsertCategory(title)
 		if err != nil {
-			s.ErrorHandler(w, 500, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	default:
-		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.methodNotAllowed(w)
 	}
 
 }

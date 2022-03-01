@@ -6,10 +6,7 @@ import (
 )
 
 func (s *AppContext) commentNew(w http.ResponseWriter, r *http.Request) {
-	if !s.alreadyLogIn(r) {
-		s.ErrorHandler(w, http.StatusForbidden, "please, log-in first")
-		return
-	}
+
 	cookie, _ := r.Cookie("session")
 	cookie.MaxAge = 300
 
@@ -18,19 +15,19 @@ func (s *AppContext) commentNew(w http.ResponseWriter, r *http.Request) {
 	s.Sqlite3.UpdateSession(userID)
 
 	if r.Method != http.MethodPost {
-		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Not Allowed")
+		s.methodNotAllowed(w)
 		return
 	}
 
 	postID, err := strconv.Atoi(r.FormValue("postID"))
 	if err != nil {
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.badReq(w)
 		return
 	}
 	content := r.FormValue("content")
 	err = s.Sqlite3.AddComment(userID, postID, content)
 	if err != nil {
-		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		s.serverErr(w)
 		return
 	}
 	url := "/post/" + strconv.Itoa(postID)

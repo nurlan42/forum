@@ -8,10 +8,6 @@ import (
 
 func (s *AppContext) postNew(w http.ResponseWriter, r *http.Request) {
 
-	if !s.alreadyLogIn(r) {
-		s.ErrorHandler(w, http.StatusForbidden, "please log-in first")
-		return
-	}
 
 	cookie, _ := r.Cookie("session")
 	cookie.MaxAge = 300 // 300 is session length
@@ -21,7 +17,7 @@ func (s *AppContext) postNew(w http.ResponseWriter, r *http.Request) {
 	s.Sqlite3.UpdateSession(userID)
 
 	if r.URL.Path != "/post/new" {
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.badReq(w)
 		return
 	}
 
@@ -29,7 +25,7 @@ func (s *AppContext) postNew(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		categories, err := s.Sqlite3.GetAllCategories()
 		if err != nil {
-			s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 		err = s.Template.ExecuteTemplate(w, "newpost.html", categories)
@@ -40,7 +36,7 @@ func (s *AppContext) postNew(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		s.newPostMethodPost(w, r)
 	default:
-		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.methodNotAllowed(w)
 	}
 
 }
@@ -48,7 +44,7 @@ func (s *AppContext) postNew(w http.ResponseWriter, r *http.Request) {
 func (s *AppContext) newPostMethodPost(w http.ResponseWriter, r *http.Request) {
 
 	if !s.alreadyLogIn(r) {
-		s.ErrorHandler(w, http.StatusForbidden, "please log-in first")
+		s.clientErr(w, models.Err{ http.StatusUnauthorized, "please log-in first"})
 		return
 	}
 	cookie, _ := r.Cookie("session")
@@ -64,14 +60,14 @@ func (s *AppContext) newPostMethodPost(w http.ResponseWriter, r *http.Request) {
 	postID, err := s.Sqlite3.InserPost(&p)
 	if err != nil {
 		if err != nil {
-			s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+			s.serverErr(w)
 			return
 		}
 	}
 
 	err = s.Sqlite3.InsertPostCategory(r, postID)
 	if err != nil {
-		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		s.serverErr(w)
 		return
 	}
 

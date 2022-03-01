@@ -2,6 +2,7 @@ package server
 
 import (
 	"forum/internal"
+	"forum/pkg/models"
 	"log"
 	"net/http"
 
@@ -10,7 +11,7 @@ import (
 
 func (s *AppContext) signin(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/signin" {
-		s.ErrorHandler(w, http.StatusBadRequest, "Bad Request")
+		s.badReq(w)
 		return
 	}
 
@@ -29,7 +30,7 @@ func (s *AppContext) signin(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		s.signinPost(w, r)
 	default:
-		s.ErrorHandler(w, http.StatusMethodNotAllowed, "Method Not Allowed")
+		s.methodNotAllowed(w)
 	}
 
 }
@@ -44,30 +45,18 @@ func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
 	u, err := s.Sqlite3.GetUser(clientEmail)
 	// err for incorrect login
 	if err != nil {
-		errorMsg := struct {
-			Msg string
-		}{
-			"incorrect login",
-		}
-		// 401 unauthorised
-		w.WriteHeader(401)
-		err = s.Template.ExecuteTemplate(w, "login.html", errorMsg)
+		err = s.Template.ExecuteTemplate(w, "signin.html", models.Err{ErrCode: 401, ErrMsg: "invalid login"})
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Internal Server Error", 500)
+			s.serverErr(w)
 		}
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword(u.Password, []byte(clientPass))
 	if err != nil {
-		errorMsg := struct {
-			Msg string
-		}{
-			"incorrect password",
-		}
 		w.WriteHeader(403)
-		err := s.Template.ExecuteTemplate(w, "login.html", errorMsg)
+		err := s.Template.ExecuteTemplate(w, "signin.html", models.Err{ErrCode: 403, ErrMsg: "invalid password"})
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Internal Server Error", 500)
@@ -83,7 +72,7 @@ func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
 
 	s.Sqlite3.InsertSession(u.UserID, sID.String())
 
+	s.InfoLog.Println(u.Email, "signed-in successfully")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-	s.InfoLog.Println(u.Email, "signed-up successfully")
 
 }

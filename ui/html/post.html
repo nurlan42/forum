@@ -10,7 +10,7 @@
 <body>
     <h2>Post:</h2>
     <h2>{{.Title}} - {{.Author}} - {{.TimeCreation}}</h2>
-    <form action="/post/reaction" method="post">
+    <form action="/post/reaction/{{.PostID}}" method="post">
         <button type="submit" name="reaction" value="1">like</button> {{.Like}}
         <button type="submit" name="reaction" value="0">dislike</button> {{.Dislike}}
         <input hidden name="postID" value="{{.PostID}}">

@@ -13,11 +13,4 @@ type AppContext struct {
 	Template *template.Template
 }
 
-func NewAppContext(db *sqlite3.Database, InfoLog, ErrorLog *log.Logger, tmpl *template.Template) *AppContext {
-	return &AppContext{
-		Sqlite3:  db,
-		InfoLog:  InfoLog,
-		ErrorLog: ErrorLog,
-		Template: tmpl,
-	}
-}
+ 

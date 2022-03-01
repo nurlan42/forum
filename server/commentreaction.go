@@ -6,11 +6,6 @@ import (
 )
 
 func (s *AppContext) commentReaction(w http.ResponseWriter, r *http.Request) {
-	if !s.alreadyLogIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
-	}
-	r.ParseForm()
 	cookie, _ := r.Cookie("session")
 	commID, err := strconv.Atoi(r.FormValue("commID"))
 	CheckErr(err)
@@ -41,7 +36,7 @@ func (s *AppContext) commentReaction(w http.ResponseWriter, r *http.Request) {
 	}
 	postID, err := s.Sqlite3.ReadPostID(commID)
 	if err != nil {
-		s.ErrorHandler(w, http.StatusInternalServerError, "Internal Server Error")
+		s.serverErr(w )
 		return
 	}
 	url := "/post/" + strconv.Itoa(postID)

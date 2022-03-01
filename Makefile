@@ -1,9 +1,12 @@
 .PHONY: build
 
 build:
-	go build -o main ./cmd
+	go build -o bin/main ./cmd
 
 .PHONY: docker
+
+run:
+	@go run ./cmd
 
 docker:
 	@echo "Building Docker Image:"
@@ -27,6 +30,18 @@ docker:
 	@echo
 
 .PHONY: clean
+
+start:
+	# run existing container
+	@docker start forum-container
+
+stop: 
+	@echo stopping running container:
+	@docker stop forum-container 
+remove:
+	@echo remove everything images, containers, and networks
+	docker image prune
+
 
 clean:
 	@echo "Stopping container:"

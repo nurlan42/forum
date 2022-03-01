@@ -15,18 +15,18 @@ func (s *AppContext) Server(p string) {
 	mux.HandleFunc("/favicon.ico", http.NotFoundHandler().ServeHTTP)
 	mux.HandleFunc("/", s.index)
 
-	mux.HandleFunc("/category/new", s.categoryNew)
+	mux.HandleFunc("/category/new", s.auth(s.categoryNew))
 
 	mux.HandleFunc("/post/", s.post)
-	mux.HandleFunc("/post/new", s.postNew)
-	mux.HandleFunc("/post/reaction", s.postReaction)
+	mux.HandleFunc("/post/new", s.auth(s.postNew))
+	mux.HandleFunc("/post/reaction/", s.auth(s.postReaction))
 
 	mux.HandleFunc("/signin", s.signin)
 	mux.HandleFunc("/signup", s.signup)
 	mux.HandleFunc("/signout", s.signout)
 
-	mux.HandleFunc("/comment/new", s.commentNew)
-	mux.HandleFunc("/comment/reaction", s.commentReaction)
+	mux.HandleFunc("/comment/new", s.auth(s.commentNew))
+	mux.HandleFunc("/comment/reaction", s.auth(s.commentReaction))
 
 	mux.HandleFunc("/filter", s.filter)
 
@@ -40,6 +40,6 @@ func (s *AppContext) Server(p string) {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	log.Printf("Starting server on %v\nlink: http://localhost%v", *port, *port)
+	s.InfoLog.Printf("Starting server on %v on: http://localhost%v", *port, *port)
 	log.Fatal(srv.ListenAndServe())
 }
