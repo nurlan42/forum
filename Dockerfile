@@ -1,6 +1,6 @@
 FROM golang:alpine
 
-RUN mkdir /app
+RUN mkdir /app /app/bin
 RUN apk add build-base
 
 LABEL author="Nurlan & Maksat"
@@ -12,7 +12,8 @@ ADD . /app
 
 WORKDIR /app
 
-RUN go build -o main ./cmd
+RUN go build -o bin/main ./cmd
+RUN rm -rf cmd internal pkg server
 
-CMD [ "/app/main" ]
+CMD [ "/app/bin/main" ]
 

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"flag"
 	"log"
 	"net/http"
@@ -33,13 +34,19 @@ func (s *AppContext) Server(p string) {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
+	cert, err := tls.LoadX509KeyPair("tls/server.crt", "tls/server.key")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	srv := &http.Server{
 		Addr:           *port,
 		Handler:        mux,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
+		TLSConfig:      &tls.Config{Certificates: []tls.Certificate{cert}},
 		MaxHeaderBytes: 1 << 20,
 	}
-	s.InfoLog.Printf("Starting server on %v on: http://localhost%v", *port, *port)
-	log.Fatal(srv.ListenAndServe())
+	s.InfoLog.Printf("Starting server on %v on: https://localhost%v", *port, *port)
+	log.Fatal(srv.ListenAndServeTLS("", ""))
 }

@@ -16,52 +16,42 @@ docker:
 	@echo "List of images:"
 	docker images
 	@echo
+	docker volume create sqlite3
+	@echo
 
 	@echo "Initiating Container:"
-	docker container run -t -p 8080:8080 --detach --name forum-container forum-image
+	docker run --rm -v sqlite3:app -p 8080:8080 --detach --name forum-container forum-image
 	@echo
 
 	@echo "Running command:"
 	docker exec -it forum-container ls -la
 	@echo
 
-	@echo "Running server:"
-	docker exec -it forum-container ./main
-	@echo
+	@echo ---> Starting server on :8080 on: http://localhost:8080
 
 .PHONY: clean
 
 start:
 	# run existing container
-	@docker start forum-container
+	docker run --rm -v sqlite3:/data -p 8080:8080 --detach --name forum-container forum-image
+	@echo ---> Starting server on :8080 on: http://localhost:8080
 
 stop: 
 	@echo stopping running container:
 	@docker stop forum-container 
-remove:
-	@echo remove everything images, containers, and networks
-	docker image prune
-
 
 clean:
-	@echo "Stopping container:"
-	docker stop forum-container
+	@echo Cleaning...
+	@docker rmi forum-image
 	@echo
+	@echo docker container list:
+	@docker container ls
+	@echo
+	@echo docker images list:
+	@docker images
 
-	@echo "Removing container:"
-	docker rm forum-container
-	@echo
-
-	@echo "Deleting images:"
-	docker rmi -f forum-image
-	@echo
-
-	@echo "List of images and containers now:"
-	docker ps -a
-	@echo
-	docker images
-	@echo
-
-	rm -rf main
+# remove everything from docker
+rme:
+	@docker system prune -a
 
 .DEFAULT_GOAL := build
