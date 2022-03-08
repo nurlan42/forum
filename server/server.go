@@ -41,7 +41,7 @@ func (s *AppContext) Server(p string) {
 
 	srv := &http.Server{
 		Addr:           *port,
-		Handler:        mux,
+		Handler:        s.limit(mux),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		TLSConfig:      &tls.Config{Certificates: []tls.Certificate{cert}},
