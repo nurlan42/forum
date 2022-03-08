@@ -81,7 +81,7 @@ func makeNewLogger() (*log.Logger, *log.Logger) {
 	reset := "\033[0m"
 
 	InfoLogger := log.New(os.Stdout, bold+colorGreen+"INFO:\t "+reset, log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger := log.New(os.Stdout, bold+colorRed+"ERROR: \t"+reset, log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLogger := log.New(os.Stderr, bold+colorRed+"ERROR: \t"+reset, log.Ldate|log.Ltime|log.Lshortfile)
 
 	return InfoLogger, ErrorLogger
 }
