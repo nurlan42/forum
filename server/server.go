@@ -47,6 +47,6 @@ func (s *AppContext) Server(p string) {
 		TLSConfig:      &tls.Config{Certificates: []tls.Certificate{cert}},
 		MaxHeaderBytes: 1 << 20,
 	}
-	s.InfoLog.Printf("Starting server on %v on: https://localhost%v", *port, *port)
+	s.InfoLog.Printf("Starting server on: https://localhost%v", *port)
 	log.Fatal(srv.ListenAndServeTLS("", ""))
 }

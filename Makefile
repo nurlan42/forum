@@ -20,14 +20,14 @@ docker:
 	@echo
 
 	@echo "Initiating Container:"
-	docker run --rm -v sqlite3:app -p 8080:8080 --detach --name forum-container forum-image
+	docker run --rm -v sqlite3:app -p 27960:27960 --detach --name forum-container forum-image
 	@echo
 
 	@echo "Running command:"
 	docker exec -it forum-container ls -la
 	@echo
 
-	@echo ---> Starting server on :8080 on: http://localhost:8080
+	@echo ---> Starting server on :27960 on: https://localhost:27960
 
 .PHONY: clean
 

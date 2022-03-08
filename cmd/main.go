@@ -48,7 +48,7 @@ func main() {
 
 	// go deleteSessions(db)
 
-	port := ":8080"
+	port := ":27960"
 	template := template.Must(template.ParseGlob("ui/html/*.html"))
 	appCtx := &server.AppContext{
 		Sqlite3:  db,
