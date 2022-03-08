@@ -3,8 +3,8 @@ package sqlite3
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -15,8 +15,14 @@ type Database struct {
 }
 
 func ConnHook(conn *sqlite3.SQLiteConn) error {
-	log.Printf("Auth enabled: %v\n", conn.AuthEnabled())
-	fmt.Println("-----------------------------------")
+	// new logger config
+	const (
+		bold       = "\033[1m"
+		colorGreen = "\033[32m"
+		reset      = "\033[0m"
+	)
+
+	log.New(os.Stdout, bold+colorGreen+"INFO:\t "+reset, log.Ldate|log.Ltime|log.Lshortfile).Printf("Auth enabled: %v\n", conn.AuthEnabled())
 	return nil
 }
 
@@ -25,7 +31,6 @@ func ConnectDb(driverName string, SQLDbName string) (*Database, error) {
 	sql.Register(driverName, &sqlite3.SQLiteDriver{
 		ConnectHook: ConnHook,
 	})
-
 	SQLDb, err := sql.Open(driverName, SQLDbName)
 	if err != nil {
 		return nil, err
