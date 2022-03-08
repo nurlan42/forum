@@ -2,8 +2,9 @@ package sqlite3
 
 import (
 	"database/sql"
-	"forum/pkg/models"
 	"time"
+
+	"forum/pkg/models"
 )
 
 func (c *Database) GetUser(uEmail string) (*models.User, error) {
@@ -15,7 +16,6 @@ func (c *Database) GetUser(uEmail string) (*models.User, error) {
 	}
 
 	return &u, nil
-
 }
 
 // checking email for uniqness
@@ -26,7 +26,6 @@ func (c *Database) HasEmail(email string) bool {
 		return false
 	}
 	return true
-
 }
 
 func (c *Database) InsertUser(u *models.User) (int64, error) {

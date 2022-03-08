@@ -3,7 +3,10 @@ package sqlite3
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+
+	"github.com/mattn/go-sqlite3"
 )
 
 // Database keeps connection to database
@@ -11,8 +14,18 @@ type Database struct {
 	SQLDb *sql.DB
 }
 
+func ConnHook(conn *sqlite3.SQLiteConn) error {
+	log.Printf("Auth enabled: %v\n", conn.AuthEnabled())
+	fmt.Println("-----------------------------------")
+	return nil
+}
+
 // ConnectDb connects to database sqlite3
 func ConnectDb(driverName string, SQLDbName string) (*Database, error) {
+	sql.Register(driverName, &sqlite3.SQLiteDriver{
+		ConnectHook: ConnHook,
+	})
+
 	SQLDb, err := sql.Open(driverName, SQLDbName)
 	if err != nil {
 		return nil, err
@@ -20,6 +33,7 @@ func ConnectDb(driverName string, SQLDbName string) (*Database, error) {
 	if err = SQLDb.Ping(); err != nil {
 		return nil, err
 	}
+
 	return &Database{SQLDb}, nil
 }
 
@@ -117,7 +131,6 @@ func (c *Database) CreateCategoryTable() {
 		log.Fatalln(err)
 	}
 	defer stmt.Close()
-
 }
 
 func (c *Database) CreatePostCategory() {
@@ -137,7 +150,6 @@ func (c *Database) CreatePostCategory() {
 		log.Fatalln(err)
 	}
 	defer stmt.Close()
-
 }
 
 func (c *Database) CreatePostReaction() {
@@ -158,7 +170,6 @@ func (c *Database) CreatePostReaction() {
 		log.Fatalln(err)
 	}
 	defer stmt.Close()
-
 }
 
 func (c *Database) CreateCommentReaction() {
@@ -179,5 +190,4 @@ func (c *Database) CreateCommentReaction() {
 		log.Fatalln(err)
 	}
 	defer stmt.Close()
-
 }

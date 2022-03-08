@@ -1,10 +1,11 @@
 package server
 
 import (
-	"forum/internal"
-	"forum/pkg/models"
 	"log"
 	"net/http"
+
+	"forum/internal"
+	"forum/pkg/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,7 +24,7 @@ func (s *AppContext) signin(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		err := s.Template.ExecuteTemplate(w, "signin.html", nil)
-		//if template does not exist
+		// if template does not exist
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -32,7 +33,6 @@ func (s *AppContext) signin(w http.ResponseWriter, r *http.Request) {
 	default:
 		s.methodNotAllowed(w)
 	}
-
 }
 
 func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
@@ -49,6 +49,7 @@ func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println(err)
 			s.serverErr(w)
+			return
 		}
 		return
 	}
@@ -67,12 +68,11 @@ func (s *AppContext) signinPost(w http.ResponseWriter, r *http.Request) {
 	if s.Sqlite3.HasSession(u.UserID) {
 		s.Sqlite3.DeleteSession(u.UserID)
 	}
-	//create new function
+	// create new function
 	sID := internal.SetCookie(w)
 
 	s.Sqlite3.InsertSession(u.UserID, sID.String())
 
 	s.InfoLog.Println(u.Email, "signed-in successfully")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-
 }
